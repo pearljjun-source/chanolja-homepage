@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Search, Edit, Trash2, MapPin, Phone, Upload, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, MapPin, Phone, Upload, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import * as XLSX from 'xlsx'
 
@@ -159,6 +159,7 @@ export default function AdminBranchesPage() {
           owner_name: row[3] ? String(row[3]).trim() : null, // 대표자
           address: address ? String(address).trim() : null, // 주소
           phone: row[5] ? String(row[5]).trim() : null, // 전화번호
+          admin_email: row[6] ? String(row[6]).trim() : null, // 이메일
           region: extractRegion(String(address)), // 지역 자동 추출
           branch_type: 'rental',
           is_active: true,
@@ -541,6 +542,12 @@ export default function AdminBranchesPage() {
                   <span>{branch.phone}</span>
                 </div>
               )}
+              {branch.admin_email && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Mail className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                  <span className="truncate">{branch.admin_email}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-gray-600">
                 <Globe className="w-4 h-4 flex-shrink-0 text-gray-400" />
                 <a
@@ -808,6 +815,7 @@ export default function AdminBranchesPage() {
                     <th className="px-3 py-2 text-left">지역</th>
                     <th className="px-3 py-2 text-left">주소</th>
                     <th className="px-3 py-2 text-left">전화번호</th>
+                    <th className="px-3 py-2 text-left">이메일</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -818,6 +826,7 @@ export default function AdminBranchesPage() {
                       <td className="px-3 py-2">{item.region}</td>
                       <td className="px-3 py-2 max-w-xs truncate" title={item.address || ''}>{item.address || '-'}</td>
                       <td className="px-3 py-2">{item.phone || '-'}</td>
+                      <td className="px-3 py-2">{item.admin_email || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
