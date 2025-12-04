@@ -6,7 +6,7 @@ import { Phone, MapPin, Clock, Youtube, Instagram } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="bg-dark text-white pb-20 lg:pb-0">
+    <footer className="bg-dark text-white">
       {/* Main Footer */}
       <div className="container-custom py-8 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12">

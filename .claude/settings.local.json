@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(copy \"C:\\Users\\pearl\\Desktop\\Euntae\\chanolja-homepage\\차놀자-영한로고시안-최종.png\" \"C:\\Users\\pearl\\Desktop\\Euntae\\chanolja-homepage\\public\\images\\logo.png\")",
+      "Bash(npm install)",
+      "Bash(npm run dev)",
+      "Bash(npm install:*)",
+      "Bash(node -e:*)",
+      "Bash(dir C:UserspearlDesktopEuntaechanolja-homepage /b)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c \"taskkill /PID 73116 /F\")",
+      "Bash(cmd //c:*)",
+      "Bash(curl:*)",
+      "Bash(node scripts/update-coordinates.js:*)",
+      "Bash(npm run build:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(npx vercel --version)",
+      "Bash(npx vercel:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git remote:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

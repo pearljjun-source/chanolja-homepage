@@ -17,7 +17,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-dark/90 via-dark/70 to-transparent" />
 
       {/* Content */}
-      <div className="container-custom relative z-10 pt-16 lg:pt-20 px-4">
+      <div className="container-custom relative z-10 pt-24 lg:pt-20 px-4">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <div className="text-white text-center lg:text-left">

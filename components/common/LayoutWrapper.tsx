@@ -24,12 +24,12 @@ export default function LayoutWrapper({
   }
 
   return (
-    <>
+    <div className="pb-20 lg:pb-0">
       {!hideHeaderFooter && <Header />}
       <main className="min-h-screen">
         {children}
       </main>
       {!hideHeaderFooter && <Footer />}
-    </>
+    </div>
   )
 }
