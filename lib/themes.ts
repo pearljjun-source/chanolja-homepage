@@ -23,24 +23,24 @@ export const themes: Record<ThemeType, ThemeColors> = {
     gradient: 'from-cyan-500 to-sky-500',
     name: '스카이 (기본)',
   },
-  // 코랄/오렌지 계열 - 따뜻한 느낌
+  // 코랄/오렌지 계열 - 따뜻한 느낌 (한톤 낮춤)
   coral: {
-    primary: '#F97316',        // orange-500
-    primaryHover: '#EA580C',   // orange-600
+    primary: '#FB923C',        // orange-400
+    primaryHover: '#F97316',   // orange-500
     primaryLight: '#FFF7ED',   // orange-50
-    primaryBg: 'bg-orange-500',
+    primaryBg: 'bg-orange-400',
     accent: '#FED7AA',         // orange-200
-    gradient: 'from-orange-500 to-amber-500',
+    gradient: 'from-orange-400 to-amber-400',
     name: '코랄',
   },
-  // 바이올렛/보라 계열 - 고급스러운 느낌
+  // 바이올렛/보라 계열 - 고급스러운 느낌 (한톤 낮춤)
   violet: {
-    primary: '#8B5CF6',        // violet-500
-    primaryHover: '#7C3AED',   // violet-600
+    primary: '#A78BFA',        // violet-400
+    primaryHover: '#8B5CF6',   // violet-500
     primaryLight: '#F5F3FF',   // violet-50
-    primaryBg: 'bg-violet-500',
+    primaryBg: 'bg-violet-400',
     accent: '#DDD6FE',         // violet-200
-    gradient: 'from-violet-500 to-purple-500',
+    gradient: 'from-violet-400 to-purple-400',
     name: '바이올렛',
   },
 }
@@ -65,21 +65,21 @@ export const themeClasses: Record<ThemeType, {
     accentBg: 'bg-sky-200',
   },
   coral: {
-    bg: 'bg-orange-500',
-    bgHover: 'hover:bg-orange-600',
+    bg: 'bg-orange-400',
+    bgHover: 'hover:bg-orange-500',
     bgLight: 'bg-orange-50',
-    text: 'text-orange-500',
-    border: 'border-orange-500',
-    ring: 'ring-orange-500',
+    text: 'text-orange-400',
+    border: 'border-orange-400',
+    ring: 'ring-orange-400',
     accentBg: 'bg-amber-200',
   },
   violet: {
-    bg: 'bg-violet-500',
-    bgHover: 'hover:bg-violet-600',
+    bg: 'bg-violet-400',
+    bgHover: 'hover:bg-violet-500',
     bgLight: 'bg-violet-50',
-    text: 'text-violet-500',
-    border: 'border-violet-500',
-    ring: 'ring-violet-500',
+    text: 'text-violet-400',
+    border: 'border-violet-400',
+    ring: 'ring-violet-400',
     accentBg: 'bg-purple-200',
   },
 }
