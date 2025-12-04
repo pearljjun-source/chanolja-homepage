@@ -15,6 +15,7 @@ interface Branch {
   lat: number | null
   lng: number | null
   subdomain?: string | null
+  vehicle_count?: number
 }
 
 export default function BranchesMap() {
@@ -28,7 +29,9 @@ export default function BranchesMap() {
     const fetchBranches = async () => {
       try {
         const supabase = createClient()
-        const { data, error } = await supabase
+
+        // 지점 조회
+        const { data: branchesData, error } = await supabase
           .from('branches')
           .select('*')
           .eq('is_active', true)
@@ -37,8 +40,27 @@ export default function BranchesMap() {
         if (error) {
           console.error('Supabase error:', error)
         }
-        if (data) {
-          setBranches(data)
+
+        if (branchesData) {
+          // 각 지점의 차량 수 조회
+          const { data: vehicleCounts } = await supabase
+            .from('vehicles')
+            .select('branch_id')
+            .eq('is_active', true)
+
+          // 지점별 차량 수 계산
+          const countMap: Record<string, number> = {}
+          vehicleCounts?.forEach(v => {
+            countMap[v.branch_id] = (countMap[v.branch_id] || 0) + 1
+          })
+
+          // 지점 데이터에 차량 수 추가
+          const branchesWithCount = branchesData.map(b => ({
+            ...b,
+            vehicle_count: countMap[b.id] || 0
+          }))
+
+          setBranches(branchesWithCount)
         }
       } catch (err) {
         console.error('Fetch error:', err)
@@ -96,12 +118,13 @@ export default function BranchesMap() {
 
           // 정보창 내용
           const branchUrl = `/branch/${encodeURIComponent(branch.subdomain || branch.name)}`
+          const hasHomepage = (branch.vehicle_count ?? 0) > 0
           const infoContent = `
             <div style="padding: 12px; min-width: 200px; font-family: sans-serif;">
               <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1f2937;">${branch.name}</h3>
               ${branch.address ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #6b7280;">${branch.address}</p>` : ''}
               ${branch.phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">📞 ${branch.phone}</p>` : ''}
-              <a href="${branchUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 6px 12px; background: #F97316; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">지점 홈페이지 →</a>
+              ${hasHomepage ? `<a href="${branchUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 6px 12px; background: #F97316; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">지점 홈페이지 →</a>` : ''}
             </div>
           `
 

@@ -16,6 +16,7 @@ interface Branch {
   owner_name?: string | null
   website_url?: string | null
   subdomain?: string | null
+  vehicle_count?: number
 }
 
 export default function BranchesList() {
@@ -28,19 +29,40 @@ export default function BranchesList() {
     const fetchBranches = async () => {
       try {
         const supabase = createClient()
-        const { data, error } = await supabase
+
+        // 지점 조회
+        const { data: branchesData, error: branchesError } = await supabase
           .from('branches')
           .select('*')
           .eq('is_active', true)
           .order('name', { ascending: true })
 
-        if (error) {
-          console.error('Supabase error:', error)
+        if (branchesError) {
+          console.error('Supabase error:', branchesError)
         }
-        if (data) {
-          setBranches(data)
+
+        if (branchesData) {
+          // 각 지점의 차량 수 조회
+          const { data: vehicleCounts } = await supabase
+            .from('vehicles')
+            .select('branch_id')
+            .eq('is_active', true)
+
+          // 지점별 차량 수 계산
+          const countMap: Record<string, number> = {}
+          vehicleCounts?.forEach(v => {
+            countMap[v.branch_id] = (countMap[v.branch_id] || 0) + 1
+          })
+
+          // 지점 데이터에 차량 수 추가
+          const branchesWithCount = branchesData.map(b => ({
+            ...b,
+            vehicle_count: countMap[b.id] || 0
+          }))
+
+          setBranches(branchesWithCount)
           // 지역 목록 추출
-          const uniqueRegions = [...new Set(data.map(b => b.region))].sort()
+          const uniqueRegions = [...new Set(branchesData.map(b => b.region))].sort()
           setRegions(['전체', ...uniqueRegions])
         }
       } catch (err) {
@@ -124,16 +146,18 @@ export default function BranchesList() {
                         <p className="text-gray-500 text-xs mb-2">{branch.phone}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <a
-                          href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
-                        >
-                          <Home className="w-3 h-3" />
-                          지점 홈페이지
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                        {(branch.vehicle_count ?? 0) > 0 && (
+                          <a
+                            href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                          >
+                            <Home className="w-3 h-3" />
+                            지점 홈페이지
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
                         {branch.website_url && (
                           <a
                             href={branch.website_url}
