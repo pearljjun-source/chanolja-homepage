@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Search, Edit, Trash2, MapPin, Phone, Upload, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw, Mail } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, MapPin, Phone, Upload, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import * as XLSX from 'xlsx'
 
@@ -540,12 +540,6 @@ export default function AdminBranchesPage() {
                 <div className="flex items-center gap-2 text-gray-600">
                   <Phone className="w-4 h-4 flex-shrink-0 text-gray-400" />
                   <span>{branch.phone}</span>
-                </div>
-              )}
-              {branch.admin_email && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Mail className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                  <span className="truncate">{branch.admin_email}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-gray-600">
