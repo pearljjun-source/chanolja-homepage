@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Branch, Vehicle, Review } from '@/types/database'
+import { getTheme, themeClasses, type ThemeType } from '@/lib/themes'
 
 export default function BranchHomePage() {
   const params = useParams()
@@ -116,22 +117,26 @@ export default function BranchHomePage() {
     return null
   }
 
+  // 테마 설정
+  const theme = getTheme((branch as any).theme)
+  const tc = themeClasses[theme]
+
   return (
     <>
       {/* Hero Section - 모바일 최적화 */}
       <section className="relative bg-white min-h-[60vh] md:min-h-[70vh] flex items-center overflow-hidden">
-        {/* 배경 패턴 */}
+        {/* 배경 패턴 - 테마별 색상 */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-10 left-5 md:top-20 md:left-10 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-5 md:bottom-20 md:right-10 w-64 md:w-96 h-64 md:h-96 bg-sky-200 rounded-full blur-3xl" />
+          <div className={`absolute top-10 left-5 md:top-20 md:left-10 w-48 md:w-72 h-48 md:h-72 ${tc.bg}/20 rounded-full blur-3xl`} />
+          <div className={`absolute bottom-10 right-5 md:bottom-20 md:right-10 w-64 md:w-96 h-64 md:h-96 ${tc.accentBg} rounded-full blur-3xl`} />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-20 w-full">
           <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-primary/10 backdrop-blur-sm rounded-full mb-4 md:mb-6">
-                <Award className="w-3 h-3 md:w-4 md:h-4 text-primary" />
-                <span className="text-xs md:text-sm font-bold text-primary">차놀자 공식 파트너</span>
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 ${tc.bgLight} backdrop-blur-sm rounded-full mb-4 md:mb-6`}>
+                <Award className={`w-3 h-3 md:w-4 md:h-4 ${tc.text}`} />
+                <span className={`text-xs md:text-sm font-bold ${tc.text}`}>차놀자 공식 파트너</span>
               </div>
 
               <h1 className="mb-4 md:mb-6 flex flex-col items-center lg:items-start">
@@ -142,7 +147,7 @@ export default function BranchHomePage() {
                   height={160}
                   className="h-16 md:h-24 lg:h-32 w-auto"
                 />
-                <span className="text-xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-primary -mt-1 md:-mt-2">
+                <span className={`text-xl md:text-3xl lg:text-4xl font-extrabold tracking-tight ${tc.text} -mt-1 md:-mt-2`}>
                   {branch.name}
                   <span className="text-gray-700 font-bold ml-1">지점</span>
                 </span>
@@ -156,7 +161,7 @@ export default function BranchHomePage() {
               <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10">
                 <a
                   href={`tel:${branch.phone}`}
-                  className="group px-6 py-3.5 md:px-8 md:py-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base"
+                  className={`group px-6 py-3.5 md:px-8 md:py-4 ${tc.bg} ${tc.bgHover} text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base`}
                 >
                   <Phone className="w-4 h-4 md:w-5 md:h-5" />
                   지금 예약하기
@@ -164,7 +169,7 @@ export default function BranchHomePage() {
                 </a>
                 <Link
                   href={`/branch/${decodedSubdomain}/vehicles`}
-                  className="px-6 py-3.5 md:px-8 md:py-4 bg-transparent hover:bg-primary/5 text-primary rounded-xl font-bold transition-all duration-300 border-2 border-primary flex items-center justify-center gap-2 text-sm md:text-base"
+                  className={`px-6 py-3.5 md:px-8 md:py-4 bg-transparent ${tc.bgLight} ${tc.text} rounded-xl font-bold transition-all duration-300 border-2 ${tc.border} flex items-center justify-center gap-2 text-sm md:text-base`}
                 >
                   <Car className="w-4 h-4 md:w-5 md:h-5" />
                   차량 둘러보기
@@ -174,8 +179,8 @@ export default function BranchHomePage() {
               {/* 빠른 정보 - 모바일 최적화 */}
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  <div className={`w-8 h-8 md:w-10 md:h-10 ${tc.bgLight} rounded-lg flex items-center justify-center`}>
+                    <MapPin className={`w-4 h-4 md:w-5 md:h-5 ${tc.text}`} />
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] md:text-xs text-gray-500 font-semibold">위치</p>
@@ -183,8 +188,8 @@ export default function BranchHomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Clock className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  <div className={`w-8 h-8 md:w-10 md:h-10 ${tc.bgLight} rounded-lg flex items-center justify-center`}>
+                    <Clock className={`w-4 h-4 md:w-5 md:h-5 ${tc.text}`} />
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] md:text-xs text-gray-500 font-semibold">영업시간</p>
@@ -196,28 +201,28 @@ export default function BranchHomePage() {
 
             {/* 우측 카드 영역 - 데스크톱 전용 */}
             <div className="hidden lg:block relative">
-              <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/30 rounded-full blur-3xl" />
+              <div className={`absolute -top-10 -right-10 w-64 h-64 ${tc.bg}/30 rounded-full blur-3xl`} />
               <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
                 <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full mb-3">
-                    <Phone className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-primary font-semibold">전화 문의</span>
+                  <div className={`inline-flex items-center justify-center gap-2 px-4 py-1.5 ${tc.bgLight} rounded-full mb-3`}>
+                    <Phone className={`w-4 h-4 ${tc.text}`} />
+                    <span className={`text-sm ${tc.text} font-semibold`}>전화 문의</span>
                   </div>
                   <p className="text-3xl font-extrabold tracking-tight text-gray-800">
                     {branch.phone}
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4">
-                    <p className="text-2xl font-bold text-primary">{vehicles.length}+</p>
+                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
+                    <p className={`text-2xl font-bold ${tc.text}`}>{vehicles.length}+</p>
                     <p className="text-xs text-gray-600 font-semibold">보유 차량</p>
                   </div>
-                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4">
-                    <p className="text-2xl font-bold text-primary">4.8</p>
+                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
+                    <p className={`text-2xl font-bold ${tc.text}`}>4.8</p>
                     <p className="text-xs text-gray-600 font-semibold">평점</p>
                   </div>
-                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4">
-                    <p className="text-2xl font-bold text-primary">24h</p>
+                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
+                    <p className={`text-2xl font-bold ${tc.text}`}>24h</p>
                     <p className="text-xs text-gray-600 font-semibold">지원</p>
                   </div>
                 </div>
@@ -232,15 +237,15 @@ export default function BranchHomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="py-3 bg-gray-50 rounded-xl">
-              <p className="text-xl font-bold text-primary">{vehicles.length}+</p>
+              <p className={`text-xl font-bold ${tc.text}`}>{vehicles.length}+</p>
               <p className="text-[10px] text-gray-500 font-medium">보유 차량</p>
             </div>
             <div className="py-3 bg-gray-50 rounded-xl">
-              <p className="text-xl font-bold text-primary">4.8</p>
+              <p className={`text-xl font-bold ${tc.text}`}>4.8</p>
               <p className="text-[10px] text-gray-500 font-medium">고객 평점</p>
             </div>
             <div className="py-3 bg-gray-50 rounded-xl">
-              <p className="text-xl font-bold text-primary">24h</p>
+              <p className={`text-xl font-bold ${tc.text}`}>24h</p>
               <p className="text-[10px] text-gray-500 font-medium">고객 지원</p>
             </div>
           </div>
@@ -248,7 +253,7 @@ export default function BranchHomePage() {
       </section>
 
       {/* 서비스 특징 - 모바일 최적화 */}
-      <section className="py-12 md:py-20 bg-primary relative overflow-hidden">
+      <section className={`py-12 md:py-20 ${tc.bg} relative overflow-hidden`}>
         {/* 배경 장식 */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -316,7 +321,7 @@ export default function BranchHomePage() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-end justify-between gap-4 mb-6 md:mb-12">
               <div>
-                <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4">
+                <span className={`inline-block px-3 py-1 ${tc.bgLight} ${tc.text} rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4`}>
                   POPULAR
                 </span>
                 <h2 className="text-xl md:text-4xl font-bold text-gray-900">
@@ -325,7 +330,7 @@ export default function BranchHomePage() {
               </div>
               <Link
                 href={`/branch/${decodedSubdomain}/vehicles`}
-                className="inline-flex items-center gap-1 text-primary font-semibold text-sm md:text-base"
+                className={`inline-flex items-center gap-1 ${tc.text} font-semibold text-sm md:text-base`}
               >
                 전체보기
                 <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
@@ -355,7 +360,7 @@ export default function BranchHomePage() {
                   </div>
                   <div className="p-3 md:p-6">
                     <div className="mb-2 md:mb-3">
-                      <h4 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                      <h4 className={`text-sm md:text-lg font-bold text-gray-900 group-hover:${tc.text} transition-colors truncate`}>
                         {vehicle.name}
                       </h4>
                       <p className="text-xs md:text-sm text-gray-500 truncate">
@@ -365,13 +370,13 @@ export default function BranchHomePage() {
                     <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-gray-100">
                       <div>
                         <p className="text-[10px] md:text-xs text-gray-400">일 렌트</p>
-                        <p className="text-base md:text-xl font-bold text-primary">
+                        <p className={`text-base md:text-xl font-bold ${tc.text}`}>
                           {vehicle.price_per_day.toLocaleString()}
                           <span className="text-xs md:text-sm font-normal text-gray-500">원</span>
                         </p>
                       </div>
-                      <div className="hidden md:flex w-10 h-10 bg-primary/10 rounded-full items-center justify-center group-hover:bg-primary transition-colors">
-                        <ArrowRight className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+                      <div className={`hidden md:flex w-10 h-10 ${tc.bgLight} rounded-full items-center justify-center group-hover:${tc.bg} transition-colors`}>
+                        <ArrowRight className={`w-5 h-5 ${tc.text} group-hover:text-white transition-colors`} />
                       </div>
                     </div>
                   </div>
@@ -387,7 +392,7 @@ export default function BranchHomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-6 md:mb-12">
             <div>
-              <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4">
+              <span className={`inline-block px-3 py-1 ${tc.bgLight} ${tc.text} rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4`}>
                 REVIEWS
               </span>
               <h2 className="text-xl md:text-4xl font-bold text-gray-900">
@@ -396,7 +401,7 @@ export default function BranchHomePage() {
             </div>
             <Link
               href={`/branch/${decodedSubdomain}/reviews`}
-              className="inline-flex items-center gap-1 text-primary font-semibold text-sm md:text-base"
+              className={`inline-flex items-center gap-1 ${tc.text} font-semibold text-sm md:text-base`}
             >
               더보기
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
@@ -439,7 +444,7 @@ export default function BranchHomePage() {
               <p className="text-gray-500 mb-3 md:mb-4 text-sm md:text-base">아직 등록된 후기가 없습니다.</p>
               <Link
                 href={`/branch/${decodedSubdomain}/reviews`}
-                className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-white rounded-lg font-semibold text-sm md:text-base"
+                className={`inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 ${tc.bg} text-white rounded-lg font-semibold text-sm md:text-base`}
               >
                 첫 번째 후기 작성하기
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
@@ -510,28 +515,28 @@ export default function BranchHomePage() {
       </section>
 
       {/* CTA Section - 모바일 최적화 */}
-      <section className="py-10 md:py-20 bg-primary relative overflow-hidden mb-16 md:mb-0">
+      <section className={`py-10 md:py-20 ${tc.bg} relative overflow-hidden mb-16 md:mb-0`}>
         {/* 배경 장식 */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-sky-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+          <div className={`absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 ${tc.accentBg} rounded-full blur-3xl translate-x-1/2 translate-y-1/2`} />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-xl md:text-4xl font-bold text-white mb-3 md:mb-6">
             지금 바로 예약하세요
           </h2>
-          <p className="text-slate-700 mb-4 md:mb-8 max-w-xl mx-auto text-sm md:text-lg leading-relaxed font-medium">
+          <p className="text-white/80 mb-4 md:mb-8 max-w-xl mx-auto text-sm md:text-lg leading-relaxed font-medium">
             친절한 상담과 합리적인 가격으로 모시겠습니다
           </p>
           <a
             href={`tel:${branch.phone}`}
-            className="inline-flex items-center gap-2 md:gap-3 px-6 py-3 md:px-10 md:py-5 bg-white text-primary rounded-xl font-bold text-lg md:text-xl shadow-xl active:scale-95 transition-transform"
+            className={`inline-flex items-center gap-2 md:gap-3 px-6 py-3 md:px-10 md:py-5 bg-white ${tc.text} rounded-xl font-bold text-lg md:text-xl shadow-xl active:scale-95 transition-transform`}
           >
             <Phone className="w-5 h-5 md:w-6 md:h-6" />
             {branch.phone}
           </a>
-          <p className="mt-4 md:mt-6 text-slate-700 text-xs md:text-sm font-medium">
+          <p className="mt-4 md:mt-6 text-white/80 text-xs md:text-sm font-medium">
             연중무휴 09:00 - 21:00
           </p>
         </div>
