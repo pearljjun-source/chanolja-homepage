@@ -28,7 +28,9 @@
       "Bash(gh repo create:*)",
       "Bash(git remote add:*)",
       "Bash(git push:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:vercel.com)"
     ],
     "deny": [],
     "ask": []

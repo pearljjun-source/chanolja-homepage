@@ -80,19 +80,27 @@ export default function BranchAdminReviewsPage() {
   const handleApprove = async (reviewId: string) => {
     try {
       const supabase = createClient()
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('reviews')
-        .update({ is_approved: true })
+        .update({ is_approved: true, is_visible: true })
         .eq('id', reviewId)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+
+      console.log('Approve result:', data)
 
       setReviews(prev =>
-        prev.map(r => (r.id === reviewId ? { ...r, is_approved: true } : r))
+        prev.map(r => (r.id === reviewId ? { ...r, is_approved: true, is_visible: true } : r))
       )
+
+      alert('후기가 승인되었습니다.')
     } catch (error) {
       console.error('Error approving review:', error)
-      alert('승인 처리 중 오류가 발생했습니다.')
+      alert('승인 처리 중 오류가 발생했습니다. 콘솔을 확인해주세요.')
     }
   }
 
