@@ -5,6 +5,13 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  safelist: [
+    // 테마 색상 클래스들
+    'bg-cyan-500', 'bg-cyan-50', 'text-cyan-500', 'border-cyan-500', 'hover:bg-cyan-600', 'bg-sky-200',
+    'bg-orange-500', 'bg-orange-50', 'text-orange-500', 'border-orange-500', 'hover:bg-orange-600', 'bg-amber-200',
+    'bg-violet-500', 'bg-violet-50', 'text-violet-500', 'border-violet-500', 'hover:bg-violet-600', 'bg-purple-200',
   ],
   theme: {
     extend: {
