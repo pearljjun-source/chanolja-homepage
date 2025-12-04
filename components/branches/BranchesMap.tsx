@@ -165,7 +165,7 @@ export default function BranchesMap() {
     // 네이버 지도 API 스크립트 로드
     const existingScript = document.querySelector(`script[src*="oapi.map.naver.com"]`)
 
-    if (existingScript && window.naver && window.naver.maps) {
+    if (window.naver && window.naver.maps) {
       // 이미 스크립트가 로드되어 있으면 바로 지도 초기화
       initMap()
     } else if (!existingScript) {
@@ -176,6 +176,16 @@ export default function BranchesMap() {
       script.onload = initMap
       script.onerror = () => setMapError(true)
       document.head.appendChild(script)
+    } else {
+      // 스크립트가 있지만 아직 로드 중인 경우, 로드 완료 대기
+      const checkInterval = setInterval(() => {
+        if (window.naver && window.naver.maps) {
+          clearInterval(checkInterval)
+          initMap()
+        }
+      }, 100)
+      // 5초 후 타임아웃
+      setTimeout(() => clearInterval(checkInterval), 5000)
     }
 
     return () => {
