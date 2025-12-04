@@ -350,6 +350,8 @@ export default function BranchHomePage() {
                         src={vehicle.thumbnail_url}
                         alt={vehicle.name}
                         fill
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        quality={85}
                         className="object-cover md:group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (

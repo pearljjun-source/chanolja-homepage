@@ -185,6 +185,9 @@ export default function VehicleDetailPage() {
               src={allImages[currentImageIndex]}
               alt={`${vehicle?.name} ${currentImageIndex + 1}`}
               fill
+              sizes="100vw"
+              quality={90}
+              priority
               className="object-contain"
             />
           </div>
@@ -204,6 +207,8 @@ export default function VehicleDetailPage() {
                     src={img}
                     alt={`썸네일 ${index + 1}`}
                     fill
+                    sizes="64px"
+                    quality={75}
                     className="object-cover"
                   />
                 </button>
@@ -253,6 +258,9 @@ export default function VehicleDetailPage() {
                       src={allImages[currentImageIndex]}
                       alt={vehicle.name}
                       fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      quality={90}
+                      priority
                       className="object-cover"
                     />
                     {/* 이미지 네비게이션 */}
@@ -304,6 +312,8 @@ export default function VehicleDetailPage() {
                           src={img}
                           alt={`${vehicle.name} ${index + 1}`}
                           fill
+                          sizes="(max-width: 640px) 64px, 80px"
+                          quality={75}
                           className="object-cover"
                         />
                       </button>
