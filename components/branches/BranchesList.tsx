@@ -21,7 +21,7 @@ interface Branch {
 export default function BranchesList() {
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedRegion, setSelectedRegion] = useState<string>('전체')
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const [regions, setRegions] = useState<string[]>(['전체'])
 
   useEffect(() => {
@@ -54,7 +54,9 @@ export default function BranchesList() {
 
   const filteredBranches = selectedRegion === '전체'
     ? branches
-    : branches.filter(b => b.region === selectedRegion)
+    : selectedRegion
+    ? branches.filter(b => b.region === selectedRegion)
+    : []
 
   return (
     <section className="py-20 bg-gray-50">
@@ -80,7 +82,7 @@ export default function BranchesList() {
               {regions.map((region) => (
                 <button
                   key={region}
-                  onClick={() => setSelectedRegion(region)}
+                  onClick={() => setSelectedRegion(selectedRegion === region ? null : region)}
                   className={`px-4 py-2 rounded-full font-medium transition-colors ${
                     selectedRegion === region
                       ? 'bg-primary text-white'
@@ -93,67 +95,76 @@ export default function BranchesList() {
             </div>
 
             {/* Branch Grid */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <MapPin className="w-6 h-6 text-primary" />
-                <h3 className="text-2xl font-bold text-dark">
-                  {selectedRegion === '전체' ? '전국' : selectedRegion} 지점
-                </h3>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                  {filteredBranches.length}개 지점
-                </span>
-              </div>
+            {selectedRegion ? (
+              <div className="bg-white rounded-2xl shadow-lg p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <MapPin className="w-6 h-6 text-primary" />
+                  <h3 className="text-2xl font-bold text-dark">
+                    {selectedRegion === '전체' ? '전국' : selectedRegion} 지점
+                  </h3>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                    {filteredBranches.length}개 지점
+                  </span>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredBranches.map((branch) => (
-                  <div
-                    key={branch.id}
-                    className="p-4 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Car className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span className="font-medium text-gray-800">{branch.name}</span>
-                    </div>
-                    {branch.address && (
-                      <p className="text-gray-500 text-xs mb-1 line-clamp-1">{branch.address}</p>
-                    )}
-                    {branch.phone && (
-                      <p className="text-gray-500 text-xs mb-2">{branch.phone}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <a
-                        href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
-                      >
-                        <Home className="w-3 h-3" />
-                        지점 홈페이지
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                      {branch.website_url && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredBranches.map((branch) => (
+                    <div
+                      key={branch.id}
+                      className="p-4 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Car className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="font-medium text-gray-800">{branch.name}</span>
+                      </div>
+                      {branch.address && (
+                        <p className="text-gray-500 text-xs mb-1 line-clamp-1">{branch.address}</p>
+                      )}
+                      {branch.phone && (
+                        <p className="text-gray-500 text-xs mb-2">{branch.phone}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
                         <a
-                          href={branch.website_url}
+                          href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary hover:underline"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
                         >
-                          <Globe className="w-3 h-3" />
-                          외부링크
+                          <Home className="w-3 h-3" />
+                          지점 홈페이지
                           <ExternalLink className="w-3 h-3" />
                         </a>
-                      )}
+                        {branch.website_url && (
+                          <a
+                            href={branch.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary hover:underline"
+                          >
+                            <Globe className="w-3 h-3" />
+                            외부링크
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {filteredBranches.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  등록된 지점이 없습니다.
+                  ))}
                 </div>
-              )}
-            </div>
+
+                {filteredBranches.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    등록된 지점이 없습니다.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+                <MapPin className="w-12 h-12 text-primary/30 mx-auto mb-4" />
+                <p className="text-gray-500">
+                  위 버튼을 클릭하여 지역별 지점을 확인하세요
+                </p>
+              </div>
+            )}
           </>
         )}
 
