@@ -192,14 +192,39 @@ export default function AdminBranchesPage() {
       if (confirmDelete) {
         // 기존 데이터 삭제
         await supabase.from('branches').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      } else {
+        // 추가만 하는 경우, 중복 이름 체크
+        const { data: existingBranches } = await supabase
+          .from('branches')
+          .select('name')
+
+        const existingNames = new Set(existingBranches?.map(b => b.name) || [])
+        const duplicates = uploadData.filter(item => existingNames.has(item.name))
+
+        if (duplicates.length > 0) {
+          const duplicateNames = duplicates.map(d => d.name).join(', ')
+          alert(`다음 지점이 이미 존재합니다: ${duplicateNames}\n\n중복된 지점은 제외하고 등록합니다.`)
+          // 중복 제외
+          const filteredData = uploadData.filter(item => !existingNames.has(item.name))
+          if (filteredData.length === 0) {
+            alert('등록할 새 지점이 없습니다.')
+            setUploading(false)
+            return
+          }
+          setUploadData(filteredData)
+        }
       }
 
       // 새 데이터 삽입
-      const { error } = await supabase.from('branches').insert(uploadData)
+      const dataToInsert = confirmDelete ? uploadData : uploadData.filter(item => {
+        // 이미 필터링된 경우 그대로 사용
+        return true
+      })
+      const { error } = await supabase.from('branches').insert(dataToInsert)
 
       if (error) throw error
 
-      alert(`${uploadData.length}개의 지점이 성공적으로 등록되었습니다.`)
+      alert(`${dataToInsert.length}개의 지점이 성공적으로 등록되었습니다.`)
       setShowUploadModal(false)
       setUploadData([])
       fetchBranches()
@@ -247,6 +272,20 @@ export default function AdminBranchesPage() {
     setSaving(true)
     try {
       const supabase = createClient()
+
+      // 중복 이름 체크 (새 지점 추가 또는 이름 변경 시)
+      const { data: existingBranch } = await supabase
+        .from('branches')
+        .select('id, name')
+        .eq('name', editingBranch.name.trim())
+        .neq('id', editingBranch.id || '00000000-0000-0000-0000-000000000000')
+        .single()
+
+      if (existingBranch) {
+        alert(`"${editingBranch.name}" 이름의 지점이 이미 존재합니다.`)
+        setSaving(false)
+        return
+      }
 
       // 주소에서 지역 자동 추출
       const region = editingBranch.address ? extractRegion(editingBranch.address) : editingBranch.region || '기타'
