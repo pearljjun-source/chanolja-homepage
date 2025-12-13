@@ -24,14 +24,14 @@ export default function StartupHero() {
             렌트카 <span className="text-primary">창업</span>
           </h1>
 
-          <div className="mb-10 space-y-3">
-            <p className="text-xl md:text-2xl text-white/80 font-extralight tracking-widest">
-              렌트카 사업 <span className="text-primary font-light">27년 Know-how</span> 바탕의
+          <div className="mb-10 space-y-4">
+            <p className="text-xl md:text-2xl text-white font-light tracking-wide drop-shadow-sm">
+              렌트카 사업 <span className="text-primary font-medium">27년 Know-how</span> 바탕의
             </p>
-            <p className="text-xl md:text-2xl text-white/80 font-extralight tracking-widest">
-              렌트카 창업을 위한 <span className="text-amber-300 font-light">최적의 교육 시스템</span>
+            <p className="text-xl md:text-2xl text-white font-light tracking-wide drop-shadow-sm">
+              렌트카 창업을 위한 <span className="text-amber-300 font-medium">최적의 교육 시스템</span>
             </p>
-            <p className="text-base md:text-lg text-gray-500 font-extralight leading-relaxed tracking-wider pt-2">
+            <p className="text-base md:text-lg text-gray-300 font-light leading-relaxed tracking-wide pt-3">
               각 전문가의 효율적인 교육으로 성공적인 창업을 지원합니다.
             </p>
           </div>
