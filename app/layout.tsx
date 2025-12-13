@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://www.chanolja.com',
+    url: 'https://차놀자.net',
     siteName: '차놀자 CHANOLJA',
     title: '차놀자 CHANOLJA | 렌트카 지점 개설 & 법인 설립 전문',
     description: '27년 자동차 업계 경력, 전국 120개 지점 운영. 렌트카 창업의 새로운 기준.',
