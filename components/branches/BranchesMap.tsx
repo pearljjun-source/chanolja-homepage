@@ -118,13 +118,12 @@ export default function BranchesMap() {
 
           // 정보창 내용
           const branchUrl = `/branch/${encodeURIComponent(branch.subdomain || branch.name)}`
-          const hasHomepage = (branch.vehicle_count ?? 0) > 0
           const infoContent = `
             <div style="padding: 12px; min-width: 200px; font-family: sans-serif;">
               <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1f2937;">${branch.name}</h3>
               ${branch.address ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #6b7280;">${branch.address}</p>` : ''}
               ${branch.phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">📞 ${branch.phone}</p>` : ''}
-              ${hasHomepage ? `<a href="${branchUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 6px 12px; background: #F97316; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">지점 홈페이지 →</a>` : ''}
+              <a href="${branchUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 6px 12px; background: #F97316; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">지점 홈페이지 →</a>
             </div>
           `
 

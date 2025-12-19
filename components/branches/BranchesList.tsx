@@ -146,18 +146,16 @@ export default function BranchesList() {
                         <p className="text-gray-500 text-xs mb-2">{branch.phone}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        {(branch.vehicle_count ?? 0) > 0 && (
-                          <a
-                            href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
-                          >
-                            <Home className="w-3 h-3" />
-                            지점 홈페이지
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
+                        <a
+                          href={`/branch/${encodeURIComponent(branch.subdomain || branch.name)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                        >
+                          <Home className="w-3 h-3" />
+                          지점 홈페이지
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
                         {branch.website_url && (
                           <a
                             href={branch.website_url}
