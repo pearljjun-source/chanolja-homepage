@@ -58,6 +58,15 @@ export default function InquirySection() {
         throw insertError
       }
 
+      // 네이버 로그분석 전환스크립트 (신청완료/lead)
+      if (typeof window !== 'undefined' && (window as any).wcs) {
+        const wcs = (window as any).wcs
+        if (!(window as any).wcs_add) (window as any).wcs_add = {}
+        ;(window as any).wcs_add['wa'] = 's_4c8ee71f4c72'
+        const _conv = { type: 'lead' }
+        wcs.trans(_conv)
+      }
+
       setIsSubmitted(true)
       setFormData({
         name: '',

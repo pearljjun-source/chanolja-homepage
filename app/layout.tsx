@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import LayoutWrapper from '@/components/common/LayoutWrapper'
+import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/common/JsonLd'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://차놀자.net'),
   title: {
     default: '차놀자 CHANOLJA | 렌트카 지점 개설 & 법인 설립 전문',
     template: '%s | 차놀자 CHANOLJA',
@@ -43,6 +46,15 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: '/',
+  },
+  verification: {
+    google: 'CIkkSH6UzgTwJUAj8tqfU-sb07r_cgUUgZaNR0yQh0I',
+    other: {
+      'naver-site-verification': '25291b360a2087369a507461f66719b10ecd9fea',
+    },
+  },
 }
 
 export default function RootLayout({
@@ -53,14 +65,50 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* 외부 리소스 프리커넥트 - 초기 연결 시간 단축 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+        {/* Supabase 프리커넥트 */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} />
+
+        {/* 네이버 지도 프리커넥트 */}
+        <link rel="preconnect" href="https://openapi.map.naver.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://openapi.map.naver.com" />
+
+        {/* Pretendard 폰트 - preload로 우선순위 높임 */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
         <link
           rel="stylesheet"
-          as="style"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
       </head>
       <body className="font-sans">
+        <OrganizationJsonLd />
+        <WebsiteJsonLd />
         <LayoutWrapper>{children}</LayoutWrapper>
+
+        {/* 네이버 로그분석 공통스크립트 */}
+        <Script
+          src="//wcs.naver.net/wcslog.js"
+          strategy="afterInteractive"
+        />
+        <Script id="naver-analytics" strategy="afterInteractive">
+          {`
+            if (!wcs_add) var wcs_add={};
+            wcs_add["wa"] = "s_4c8ee71f4c72";
+            if (!_nasa) var _nasa={};
+            if(window.wcs){
+              wcs.inflow("xn--w80bk23b0hd.net");
+              wcs_do();
+            }
+          `}
+        </Script>
       </body>
     </html>
   )
