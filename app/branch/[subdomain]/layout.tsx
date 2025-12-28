@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const subdomain = decodeURIComponent(params.subdomain)
 
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: branches } = await supabase
       .from('branches')
       .select('name, subdomain, description, region, phone')
