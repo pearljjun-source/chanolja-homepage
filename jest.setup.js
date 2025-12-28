@@ -1,0 +1,68 @@
+import '@testing-library/jest-dom'
+
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+    }
+  },
+  usePathname() {
+    return '/'
+  },
+  useSearchParams() {
+    return new URLSearchParams()
+  },
+}))
+
+// Mock Next.js Image component
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: ({ priority, fill, ...props }) => {
+    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+    return <img {...props} />
+  },
+}))
+
+// Mock Next.js Link component
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ children, href, ...props }) => {
+    return <a href={href} {...props}>{children}</a>
+  },
+}))
+
+// Only run browser mocks in jsdom environment
+if (typeof window !== 'undefined') {
+  // Mock window.matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
+
+  // Mock Geolocation API
+  if (typeof navigator !== 'undefined') {
+    const mockGeolocation = {
+      getCurrentPosition: jest.fn(),
+      watchPosition: jest.fn(),
+      clearWatch: jest.fn(),
+    }
+    Object.defineProperty(navigator, 'geolocation', {
+      value: mockGeolocation,
+      writable: true,
+    })
+  }
+}

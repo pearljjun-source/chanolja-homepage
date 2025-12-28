@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+
+// Bundle analyzer for performance analysis
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -10,6 +16,10 @@ const nextConfig = {
       },
     ],
   },
+  // Optimize bundle size
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)

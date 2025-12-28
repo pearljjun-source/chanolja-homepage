@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Search, Edit, Trash2, MapPin, Phone, Upload, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, MapPin, Phone, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import * as XLSX from 'xlsx'
+
+// Dynamic import for xlsx to reduce initial bundle size
+const loadXLSX = () => import('xlsx')
 
 interface Branch {
   id: string
@@ -119,9 +121,12 @@ export default function AdminBranchesPage() {
     setLoading(false)
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Dynamically load xlsx library only when needed
+    const XLSX = await loadXLSX()
 
     const reader = new FileReader()
     reader.onload = (event) => {

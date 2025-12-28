@@ -1,6 +1,20 @@
+import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import HeroSection from '@/components/home/HeroSection'
 import ReservationSection from '@/components/home/ReservationSection'
+
+export const metadata: Metadata = {
+  title: '차놀자 CHANOLJA | 렌트카 지점 개설 & 법인 설립 전문',
+  description: '27년 자동차 업계 경력, 전국 120개 지점 운영. 렌트카 창업, 법인 설립, 캠핑카 사업까지. GROW TOGETHER - 우리 모두가 함께 성장합니다.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: '차놀자 CHANOLJA | 렌트카 지점 개설 & 법인 설립 전문',
+    description: '27년 자동차 업계 경력, 전국 120개 지점 운영. 렌트카 창업의 새로운 기준.',
+    url: '/',
+  },
+}
 
 // Below-the-fold 컴포넌트들은 Lazy Loading으로 로드
 // 사용자가 스크롤하기 전까지 다운로드하지 않음

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
+import { ToastProvider } from '@/components/ui/Toast'
 
 export default function LayoutWrapper({
   children,
@@ -20,16 +21,18 @@ export default function LayoutWrapper({
 
   // 지점 홈페이지는 완전히 독립적으로 렌더링
   if (isBranchSitePage) {
-    return <>{children}</>
+    return <ToastProvider>{children}</ToastProvider>
   }
 
   return (
-    <div className="pb-20 lg:pb-0">
-      {!hideHeaderFooter && <Header />}
-      <main className="min-h-screen">
-        {children}
-      </main>
-      {!hideHeaderFooter && <Footer />}
-    </div>
+    <ToastProvider>
+      <div className="pb-20 lg:pb-0">
+        {!hideHeaderFooter && <Header />}
+        <main className="min-h-screen">
+          {children}
+        </main>
+        {!hideHeaderFooter && <Footer />}
+      </div>
+    </ToastProvider>
   )
 }

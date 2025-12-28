@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { NewsImage } from '@/components/common/OptimizedImage'
 import { ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { News } from '@/types/database'
@@ -116,10 +116,11 @@ export default function NewsSection() {
                 >
                   <div className="w-24 h-24 flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg relative overflow-hidden">
                     {item.thumbnail_url ? (
-                      <Image
+                      <NewsImage
                         src={item.thumbnail_url}
                         alt={item.title}
                         fill
+                        sizes="96px"
                         className="object-cover"
                       />
                     ) : (
@@ -159,10 +160,11 @@ export default function NewsSection() {
                     {/* Thumbnail */}
                     <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative overflow-hidden">
                       {item.thumbnail_url ? (
-                        <Image
+                        <NewsImage
                           src={item.thumbnail_url}
                           alt={item.title}
                           fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (

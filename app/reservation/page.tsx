@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import { VehicleImage } from '@/components/common/OptimizedImage'
 import {
   Car,
   MapPin,
@@ -397,10 +397,11 @@ function ReservationContent() {
                             {/* 차량 이미지 */}
                             <div className="w-32 sm:w-40 h-28 bg-gradient-to-br from-slate-700 to-slate-800 flex-shrink-0 relative overflow-hidden">
                               {vehicle.thumbnail_url ? (
-                                <Image
+                                <VehicleImage
                                   src={vehicle.thumbnail_url}
                                   alt={vehicle.name}
                                   fill
+                                  sizes="160px"
                                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
                               ) : (
@@ -607,14 +608,14 @@ function ReservationContent() {
                 {/* 선택된 차량 */}
                 <div className="bg-white/5 rounded-xl p-4 mb-5">
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-14 bg-slate-700 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-14 bg-slate-700 rounded-lg overflow-hidden flex-shrink-0 relative">
                       {selectedVehicle?.thumbnail_url ? (
-                        <Image
+                        <VehicleImage
                           src={selectedVehicle.thumbnail_url}
                           alt={selectedVehicle.name}
-                          width={80}
-                          height={56}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="80px"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

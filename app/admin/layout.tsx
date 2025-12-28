@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { LogoImage } from '@/components/common/OptimizedImage'
 import {
   LayoutDashboard,
   Newspaper,
@@ -64,7 +64,7 @@ export default function AdminLayout({
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-md px-4 py-3 flex items-center justify-between">
         <Link href="/admin">
-          <Image
+          <LogoImage
             src="/images/logo.png"
             alt="차놀자 로고"
             width={100}
@@ -89,7 +89,7 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="p-6 border-b border-white/10">
             <Link href="/admin">
-              <Image
+              <LogoImage
                 src="/images/logo.png"
                 alt="차놀자 로고"
                 width={120}

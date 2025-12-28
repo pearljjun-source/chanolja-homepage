@@ -1,20 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Play } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { ArrowRight } from 'lucide-react'
+
+// 3D Scene을 동적으로 불러와서 초기 로딩 시간 최적화
+const Hero3DScene = dynamic(() => import('./Hero3DScene'), {
+  ssr: false,
+  loading: () => (
+    // 3D 로딩 중 간단한 배경
+    <div className="absolute inset-0 bg-dark" />
+  ),
+})
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-dark via-dark-200 to-dark pb-16 lg:pb-0">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233CBFDC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-      </div>
-
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-dark/90 via-dark/70 to-transparent" />
+      {/* 3D Background - 파티클 */}
+      <Hero3DScene />
 
       {/* Content */}
       <div className="container-custom relative z-10 pt-24 lg:pt-20 px-4">
@@ -36,9 +39,8 @@ export default function HeroSection() {
               우리 모두가 <span className="text-primary font-semibold">함께</span> 성장합니다
             </p>
 
-            <p className="text-slate-400 text-base lg:text-lg mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed font-light">
-              27년 노하우와 전국 120개 지점 네트워크를 바탕으로 성공적인 창업을 함께합니다.
-            </p>
+            {/* 설명문 공간 유지 */}
+            <div className="mb-6 lg:mb-8 h-12 lg:h-16" />
 
             <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center lg:justify-start">
               <Link

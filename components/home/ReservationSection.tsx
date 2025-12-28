@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { VehicleImage } from '@/components/common/OptimizedImage'
 import {
   Car,
   MapPin,
@@ -374,10 +374,11 @@ export default function ReservationSection() {
                     >
                       <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
                         {vehicle.thumbnail_url ? (
-                          <Image
+                          <VehicleImage
                             src={vehicle.thumbnail_url}
                             alt={vehicle.name}
                             fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         ) : (
