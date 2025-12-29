@@ -1,6 +1,6 @@
 'use client'
 
-import Script from 'next/script'
+import { useEffect } from 'react'
 
 declare global {
   interface Window {
@@ -10,24 +10,32 @@ declare global {
       trans: (conv: { type: string }) => void
     }
     wcs_do: () => void
-    _nasa: Record<string, unknown>
   }
 }
 
 export default function NaverAnalytics() {
-  return (
-    <Script
-      id="naver-wcslog"
-      src="//wcs.naver.net/wcslog.js"
-      strategy="afterInteractive"
-      onLoad={() => {
-        if (typeof window !== 'undefined' && window.wcs) {
-          if (!window.wcs_add) window.wcs_add = { wa: '' }
-          window.wcs_add.wa = 's_4c8ee71f4c72'
-          window.wcs.inflow('xn--w80bk23b0hd.net')
-          window.wcs_do()
-        }
-      }}
-    />
-  )
+  useEffect(() => {
+    // wcslog.js 스크립트 동적 로드
+    const script = document.createElement('script')
+    script.src = 'https://wcs.naver.net/wcslog.js'
+    script.async = true
+    script.onload = () => {
+      if (window.wcs) {
+        if (!window.wcs_add) window.wcs_add = { wa: '' }
+        window.wcs_add.wa = 's_4c8ee71f4c72'
+        window.wcs.inflow('xn--w80bk23b0hd.net')
+        window.wcs_do()
+      }
+    }
+    document.head.appendChild(script)
+
+    return () => {
+      // cleanup
+      if (script.parentNode) {
+        script.parentNode.removeChild(script)
+      }
+    }
+  }, [])
+
+  return null
 }
