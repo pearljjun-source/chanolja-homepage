@@ -15,7 +15,7 @@ const Hero3DScene = dynamic(() => import('./Hero3DScene'), {
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-dark via-dark-200 to-dark pb-16 lg:pb-0">
+    <section className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden bg-black pb-16 lg:pb-0">
       {/* 3D Background - 파티클 */}
       <Hero3DScene />
 
