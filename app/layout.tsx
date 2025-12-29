@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import './globals.css'
 import LayoutWrapper from '@/components/common/LayoutWrapper'
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/common/JsonLd'
+import NaverAnalytics from '@/components/common/NaverAnalytics'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://차놀자.net'),
@@ -93,22 +93,8 @@ export default function RootLayout({
         <WebsiteJsonLd />
         <LayoutWrapper>{children}</LayoutWrapper>
 
-        {/* 네이버 로그분석 공통스크립트 */}
-        <Script
-          src="//wcs.naver.net/wcslog.js"
-          strategy="afterInteractive"
-        />
-        <Script id="naver-analytics" strategy="afterInteractive">
-          {`
-            if (!wcs_add) var wcs_add={};
-            wcs_add["wa"] = "s_4c8ee71f4c72";
-            if (!_nasa) var _nasa={};
-            if(window.wcs){
-              wcs.inflow("xn--w80bk23b0hd.net");
-              wcs_do();
-            }
-          `}
-        </Script>
+        {/* 네이버 프리미엄 로그분석 공통스크립트 */}
+        <NaverAnalytics />
       </body>
     </html>
   )

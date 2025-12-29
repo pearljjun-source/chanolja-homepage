@@ -47,7 +47,8 @@
       "Bash(del temp_page.html)",
       "Bash(timeout /t 10 /nobreak)",
       "WebFetch(domain:localhost)",
-      "Bash(\"C:\\\\Users\\\\pearl\\\\desktop\\\\euntae\\\\chanolja-homepage\\\\app\\\\branch\\\\[subdomain]\\\\layout.tsx\")"
+      "Bash(\"C:\\\\Users\\\\pearl\\\\desktop\\\\euntae\\\\chanolja-homepage\\\\app\\\\branch\\\\[subdomain]\\\\layout.tsx\")",
+      "Bash(timeout /t 30 /nobreak)"
     ],
     "deny": [],
     "ask": []
