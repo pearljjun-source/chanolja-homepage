@@ -1,6 +1,7 @@
 // 토스페이먼츠 API 클라이언트
 
 import { SPLIT_RATIO, BANK_CODES, BankCode } from './types'
+import { calculateSplitAmountsFromDB, DEFAULT_PAYMENT_SETTINGS } from './settings'
 
 const TOSS_API_BASE = 'https://api.tosspayments.com/v1'
 
@@ -13,7 +14,7 @@ function getAuthHeader(): string {
   return `Basic ${Buffer.from(secretKey + ':').toString('base64')}`
 }
 
-// 스플릿 정산 금액 계산
+// 스플릿 정산 금액 계산 (동기 버전 - 기본값 사용, 하위 호환성 유지)
 export function calculateSplitAmounts(totalAmount: number) {
   const hqAmount = Math.round(totalAmount * SPLIT_RATIO.HQ / 100)
   const branchAmount = totalAmount - hqAmount // 반올림 오차 방지
@@ -24,6 +25,11 @@ export function calculateSplitAmounts(totalAmount: number) {
     branchRatio: SPLIT_RATIO.BRANCH,
     hqRatio: SPLIT_RATIO.HQ
   }
+}
+
+// 스플릿 정산 금액 계산 (비동기 버전 - DB 설정 사용)
+export async function calculateSplitAmountsAsync(totalAmount: number) {
+  return calculateSplitAmountsFromDB(totalAmount)
 }
 
 // 카드 결제 위젯용 데이터 생성

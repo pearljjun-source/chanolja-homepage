@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { capturePaymentError } from '@/lib/sentry'
 
 // POST: 토스페이먼츠 카드 결제 승인 (스플릿 정산)
 export async function POST(request: NextRequest) {
@@ -100,50 +101,75 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 결제 성공 - DB 업데이트
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .update({
-        pg_transaction_id: paymentKey,
-        status: 'completed',
-        paid_at: new Date().toISOString(),
-        card_company: tossData.card?.company || null,
-        card_number: tossData.card?.number || null,
-        installment_months: tossData.card?.installmentPlanMonths || 0,
-        // 정산 상태 - 결제 완료 후 자동 정산 시작
-        settlement_status: 'processing',
-        branch_settlement_status: 'processing',
-        hq_settlement_status: 'processing'
+    // 결제 성공 - 트랜잭션으로 DB 업데이트 (결제 + 예약 원자적 처리)
+    const { data: txResult, error: txError } = await supabase
+      .rpc('complete_payment_transaction', {
+        p_order_id: orderId,
+        p_payment_key: paymentKey,
+        p_card_company: tossData.card?.company || null,
+        p_card_number: tossData.card?.number || null,
+        p_installment_months: tossData.card?.installmentPlanMonths || 0,
       })
-      .eq('pg_order_id', orderId)
-      .select('*, reservation_id')
-      .single()
 
-    if (paymentError) {
-      console.error('Payment update error:', paymentError)
-    }
+    // RPC 함수가 없는 경우 기존 방식으로 폴백
+    if (txError?.code === 'PGRST202') {
+      console.log('RPC function not found, using fallback method')
 
-    // 예약 상태 업데이트
-    if (payment?.reservation_id) {
-      await supabase
-        .from('reservations')
+      const { data: payment, error: paymentError } = await supabase
+        .from('payments')
         .update({
-          status: 'confirmed',
-          payment_status: 'paid'
+          pg_transaction_id: paymentKey,
+          status: 'completed',
+          paid_at: new Date().toISOString(),
+          card_company: tossData.card?.company || null,
+          card_number: tossData.card?.number || null,
+          installment_months: tossData.card?.installmentPlanMonths || 0,
+          settlement_status: 'processing',
+          branch_settlement_status: 'processing',
+          hq_settlement_status: 'processing'
         })
-        .eq('id', payment.reservation_id)
+        .eq('pg_order_id', orderId)
+        .select('*, reservation_id')
+        .single()
+
+      if (paymentError) {
+        console.error('Payment update error:', paymentError)
+      }
+
+      if (payment?.reservation_id) {
+        await supabase
+          .from('reservations')
+          .update({
+            status: 'confirmed',
+            payment_status: 'paid'
+          })
+          .eq('id', payment.reservation_id)
+      }
+    } else if (txError) {
+      console.error('Transaction error:', txError)
+      capturePaymentError(txError, { orderId, paymentKey, amount })
+      return NextResponse.json(
+        { success: false, error: '결제 처리 중 오류가 발생했습니다.' },
+        { status: 500 }
+      )
+    } else if (!txResult?.success) {
+      return NextResponse.json(
+        { success: false, error: txResult?.error || '결제 처리 실패' },
+        { status: 400 }
+      )
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        payment,
+        paymentId: txResult?.payment_id || paymentRecord.id,
+        reservationId: txResult?.reservation_id || paymentRecord.reservation_id,
         toss: tossData,
         splitInfo: {
           branchSubMallId,
-          branchAmount: paymentRecord.branch_settlement_amount,
+          branchAmount: txResult?.branch_settlement_amount || paymentRecord.branch_settlement_amount,
           hqSubMallId,
-          hqAmount: paymentRecord.hq_settlement_amount,
+          hqAmount: txResult?.hq_settlement_amount || paymentRecord.hq_settlement_amount,
           message: '결제가 완료되었습니다. 정산은 T+1일에 각 계좌로 입금됩니다.'
         }
       },
@@ -151,6 +177,13 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Payment confirm error:', error)
+
+    // Sentry에 결제 에러 보고
+    capturePaymentError(error, {
+      orderId: 'unknown',
+      paymentKey: 'unknown',
+    })
+
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

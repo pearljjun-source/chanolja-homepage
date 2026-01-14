@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { requireSuperAdmin, type UserRole } from '@/lib/auth/rbac'
 
 // Supabase Admin Client (Service Role Key 필요)
 const supabaseAdmin = createClient(
@@ -15,7 +16,21 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    // 권한 검사: super_admin만 사용자 생성 가능
+    const authResult = await requireSuperAdmin()
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status }
+      )
+    }
+
+    const { email, password, role = 'user', branch_id } = await request.json() as {
+      email: string
+      password: string
+      role?: UserRole
+      branch_id?: string
+    }
 
     if (!email || !password) {
       return NextResponse.json(
@@ -31,11 +46,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자 생성
+    // 유효한 역할인지 확인
+    const validRoles: UserRole[] = ['super_admin', 'admin', 'branch_admin', 'staff', 'user']
+    if (!validRoles.includes(role)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 역할입니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 사용자 생성 (역할 정보 포함)
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // 이메일 인증 건너뛰기
+      email_confirm: true,
+      user_metadata: {
+        role,
+        branch_id: branch_id || null,
+      },
     })
 
     if (error) {
@@ -51,10 +79,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: '관리자 계정이 생성되었습니다.',
+      message: '사용자 계정이 생성되었습니다.',
       user: {
         id: data.user?.id,
         email: data.user?.email,
+        role: data.user?.user_metadata?.role,
+        branch_id: data.user?.user_metadata?.branch_id,
       }
     })
   } catch (error) {

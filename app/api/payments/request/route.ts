@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { calculateSplitAmounts } from '@/lib/payments/toss-client'
+import { calculateSplitAmountsAsync } from '@/lib/payments/toss-client'
 import { PaymentMethod, BANK_CODES, BankCode } from '@/lib/payments/types'
 
 // POST: 결제 요청 준비 (카드 / 가상계좌)
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
 
     const orderName = `${vehicleName} 렌트 (${reservation.start_date} ~ ${reservation.end_date})`
 
-    // 스플릿 정산 금액 계산 (지점 90%, 본사 10%)
-    const { branchAmount, hqAmount, branchRatio, hqRatio } = calculateSplitAmounts(reservation.total_price)
+    // 스플릿 정산 금액 계산 (DB 설정 기반)
+    const { branchAmount, hqAmount, branchRatio, hqRatio } = await calculateSplitAmountsAsync(reservation.total_price)
 
     // 결제 레코드 생성
     const paymentData: Record<string, unknown> = {

@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
     const finalConfigKey =
       request.method === 'GET' ? 'read' : configKey
 
-    const rateLimitResult = checkRateLimit(clientIP, finalConfigKey)
+    const rateLimitResult = await checkRateLimit(clientIP, finalConfigKey)
 
     // Rate Limit 초과 시 429 응답
     if (!rateLimitResult.success) {

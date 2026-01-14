@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 
 export default function GlobalError({
   error,
@@ -9,6 +11,17 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    // Sentry에 에러 전송
+    Sentry.captureException(error, {
+      tags: {
+        errorType: 'global-error',
+        digest: error.digest,
+      },
+    })
+    console.error('Global Error:', error)
+  }, [error])
+
   return (
     <html lang="ko">
       <body>

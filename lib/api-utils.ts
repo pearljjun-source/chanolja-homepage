@@ -49,12 +49,12 @@ export function apiError(
  * API Rate Limit 체크 래퍼
  * API 핸들러 내부에서 추가적인 rate limiting이 필요할 때 사용
  */
-export function withRateLimit(
+export async function withRateLimit(
   request: NextRequest,
   configKey: string = 'default'
-): { success: true; result: RateLimitResult } | { success: false; response: Response } {
+): Promise<{ success: true; result: RateLimitResult } | { success: false; response: Response }> {
   const clientIP = getClientIP(request)
-  const result = checkRateLimit(clientIP, configKey)
+  const result = await checkRateLimit(clientIP, configKey)
 
   if (!result.success) {
     return {

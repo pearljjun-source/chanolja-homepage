@@ -1,45 +1,21 @@
 /**
- * API Rate Limiter
+ * API Rate Limiter (Upstash Redis 기반)
  *
  * IP당 요청 횟수를 제한하여 악의적인 API 남용을 방지합니다.
- * 메모리 기반 저장소를 사용합니다. (프로덕션에서는 Redis 권장)
+ * Upstash Redis를 사용하여 서버리스 환경에서도 정확하게 동작합니다.
  */
 
-interface RateLimitEntry {
-  count: number
-  resetTime: number
-}
+import { Redis } from '@upstash/redis'
+
+// Upstash Redis 클라이언트 생성
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
 interface RateLimitConfig {
   interval: number  // 시간 간격 (밀리초)
   maxRequests: number  // 간격 내 최대 요청 수
-}
-
-// 메모리 저장소 (서버리스 환경에서는 각 인스턴스별로 분리됨)
-const rateLimitStore = new Map<string, RateLimitEntry>()
-
-// 오래된 엔트리 정리 간격 (5분)
-const CLEANUP_INTERVAL = 5 * 60 * 1000
-
-// 주기적으로 만료된 엔트리 정리
-let cleanupTimer: NodeJS.Timeout | null = null
-
-function startCleanupTimer() {
-  if (cleanupTimer) return
-
-  cleanupTimer = setInterval(() => {
-    const now = Date.now()
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (entry.resetTime < now) {
-        rateLimitStore.delete(key)
-      }
-    }
-  }, CLEANUP_INTERVAL)
-
-  // 타이머가 프로세스 종료를 막지 않도록 설정
-  if (cleanupTimer.unref) {
-    cleanupTimer.unref()
-  }
 }
 
 // 기본 설정: 1분에 100번
@@ -86,43 +62,50 @@ export interface RateLimitResult {
 }
 
 /**
- * Rate Limit 체크
+ * Rate Limit 체크 (Vercel KV 기반)
  * @param identifier - 식별자 (보통 IP 주소)
  * @param configKey - 설정 키 (default, auth, reservation 등)
- * @returns RateLimitResult
+ * @returns Promise<RateLimitResult>
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   configKey: string = 'default'
-): RateLimitResult {
-  startCleanupTimer()
-
+): Promise<RateLimitResult> {
   const config = RATE_LIMIT_CONFIGS[configKey] || DEFAULT_RATE_LIMIT
-  const now = Date.now()
-  const key = `${configKey}:${identifier}`
+  const key = `ratelimit:${configKey}:${identifier}`
+  const intervalSeconds = Math.ceil(config.interval / 1000)
 
-  let entry = rateLimitStore.get(key)
+  try {
+    // INCR + TTL 설정을 한 번에 처리 (원자적 연산)
+    const count = await redis.incr(key)
 
-  // 엔트리가 없거나 만료되었으면 새로 생성
-  if (!entry || entry.resetTime < now) {
-    entry = {
-      count: 0,
-      resetTime: now + config.interval,
+    // 첫 요청일 경우 TTL 설정
+    if (count === 1) {
+      await redis.expire(key, intervalSeconds)
     }
-  }
 
-  // 요청 수 증가
-  entry.count++
-  rateLimitStore.set(key, entry)
+    // TTL 조회하여 resetTime 계산
+    const ttl = await redis.ttl(key)
+    const resetTime = Date.now() + (ttl > 0 ? ttl * 1000 : config.interval)
 
-  const remaining = Math.max(0, config.maxRequests - entry.count)
-  const success = entry.count <= config.maxRequests
+    const remaining = Math.max(0, config.maxRequests - count)
+    const success = count <= config.maxRequests
 
-  return {
-    success,
-    limit: config.maxRequests,
-    remaining,
-    resetTime: entry.resetTime,
+    return {
+      success,
+      limit: config.maxRequests,
+      remaining,
+      resetTime,
+    }
+  } catch (error) {
+    // KV 연결 실패 시 기본적으로 통과 (서비스 가용성 우선)
+    console.error('Rate limit check failed:', error)
+    return {
+      success: true,
+      limit: config.maxRequests,
+      remaining: config.maxRequests,
+      resetTime: Date.now() + config.interval,
+    }
   }
 }
 

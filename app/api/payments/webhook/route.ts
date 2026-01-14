@@ -1,20 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import crypto from 'crypto'
+
+/**
+ * HMAC-SHA256 서명 검증 (타이밍 공격 방지)
+ * 토스페이먼츠 웹훅 서명 검증 방식을 따름
+ */
+function verifyWebhookSignature(
+  rawBody: string,
+  signature: string | null,
+  secret: string
+): boolean {
+  if (!signature) return false
+
+  try {
+    // 토스페이먼츠 서명 포맷: t={timestamp},v1={signature}
+    const parts = signature.split(',')
+    const timestampPart = parts.find(p => p.startsWith('t='))
+    const signaturePart = parts.find(p => p.startsWith('v1='))
+
+    if (!timestampPart || !signaturePart) {
+      // 레거시 방식: 단순 시크릿 비교 (기존 호환성)
+      const expectedBuffer = Buffer.from(secret, 'utf8')
+      const actualBuffer = Buffer.from(signature, 'utf8')
+      if (expectedBuffer.length !== actualBuffer.length) return false
+      return crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+    }
+
+    const timestamp = timestampPart.replace('t=', '')
+    const receivedSignature = signaturePart.replace('v1=', '')
+
+    // 5분 이상 지난 요청은 거부 (리플레이 공격 방지)
+    const timestampMs = parseInt(timestamp, 10)
+    const now = Date.now()
+    if (Math.abs(now - timestampMs) > 5 * 60 * 1000) {
+      console.error('Webhook timestamp expired:', { timestamp, now })
+      return false
+    }
+
+    // HMAC-SHA256 서명 생성
+    const signaturePayload = `${timestamp}.${rawBody}`
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(signaturePayload, 'utf8')
+      .digest('hex')
+
+    // 타이밍 안전 비교
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex')
+    const actualBuffer = Buffer.from(receivedSignature, 'hex')
+
+    if (expectedBuffer.length !== actualBuffer.length) return false
+    return crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+  } catch (error) {
+    console.error('Signature verification error:', error)
+    return false
+  }
+}
 
 // POST: 토스페이먼츠 웹훅 (가상계좌 입금 확인 등)
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const body = await request.json()
 
-    // 웹훅 시크릿 검증
+    // Raw body를 먼저 추출 (서명 검증용)
+    const rawBody = await request.text()
+    const body = JSON.parse(rawBody)
+
+    // 웹훅 시크릿 검증 (HMAC-SHA256)
     const webhookSecret = process.env.TOSS_PAYMENTS_WEBHOOK_SECRET
-    if (webhookSecret && body.secret !== webhookSecret) {
-      console.error('Webhook secret mismatch')
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+    if (webhookSecret) {
+      const signature = request.headers.get('Toss-Signature') || body.secret
+
+      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+        console.error('Webhook signature verification failed')
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
     }
 
     const { eventType, data } = body

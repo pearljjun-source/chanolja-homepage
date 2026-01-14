@@ -15,9 +15,15 @@ jest.mock('@/lib/supabase/server', () => ({
   })),
 }))
 
-// Mock calculateSplitAmounts
+// Mock calculateSplitAmountsAsync
 jest.mock('@/lib/payments/toss-client', () => ({
   calculateSplitAmounts: jest.fn((amount: number) => ({
+    branchAmount: Math.floor(amount * 0.9),
+    hqAmount: Math.ceil(amount * 0.1),
+    branchRatio: 90,
+    hqRatio: 10,
+  })),
+  calculateSplitAmountsAsync: jest.fn((amount: number) => Promise.resolve({
     branchAmount: Math.floor(amount * 0.9),
     hqAmount: Math.ceil(amount * 0.1),
     branchRatio: 90,
