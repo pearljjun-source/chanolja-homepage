@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { revalidateNews } from '@/app/actions/news'
 
 const categories = [
   { value: 'news', label: '뉴스' },
@@ -73,6 +74,7 @@ export default function EditNewsPage() {
 
       if (error) throw error
 
+      await revalidateNews(id)
       router.push('/admin/news')
     } catch (error) {
       console.error('Error updating news:', error)
