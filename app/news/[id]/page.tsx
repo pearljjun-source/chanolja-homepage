@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Calendar, Share2, Eye } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import { sanitizeContent } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -146,7 +147,7 @@ export default async function NewsDetailPage({
             <article className="prose prose-lg max-w-none">
               <div
                 className="text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: news.content.replace(/\n/g, '<br />') }}
+                dangerouslySetInnerHTML={{ __html: sanitizeContent(news.content.replace(/\n/g, '<br />')) }}
               />
             </article>
 

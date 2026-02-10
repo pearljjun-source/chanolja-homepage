@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { BANK_CODES, BankCode } from '@/lib/payments/types'
+import { withAuth } from '@/lib/auth/with-auth'
 
-// POST: 토스페이먼츠 가상계좌 발급 (스플릿 정산)
-export async function POST(request: NextRequest) {
+// POST: 토스페이먼츠 가상계좌 발급 (인증된 사용자)
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -17,7 +18,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 은행 코드 확인
     const bankCode = BANK_CODES[bank]
     if (!bankCode) {
       return NextResponse.json(
@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // DB에서 결제 정보 조회
     const { data: paymentRecord, error: fetchError } = await supabase
       .from('payments')
       .select(`
@@ -50,7 +49,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 이미 가상계좌가 발급된 경우
     if (paymentRecord.virtual_account_number) {
       return NextResponse.json({
         success: true,
@@ -65,7 +63,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 토스페이먼츠 시크릿 키
     const secretKey = process.env.TOSS_PAYMENTS_SECRET_KEY
 
     if (!secretKey) {
@@ -75,14 +72,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 주문명 생성
     const vehicleName = paymentRecord.reservation?.vehicle?.brand
       ? `${paymentRecord.reservation.vehicle.brand} ${paymentRecord.reservation.vehicle.model || paymentRecord.reservation.vehicle.name}`
       : paymentRecord.reservation?.vehicle?.name || '차량 렌트'
 
     const orderName = `${vehicleName} 렌트 (${paymentRecord.reservation?.start_date} ~ ${paymentRecord.reservation?.end_date})`
 
-    // 토스페이먼츠 가상계좌 발급 API 호출
     const tossResponse = await fetch('https://api.tosspayments.com/v1/virtual-accounts', {
       method: 'POST',
       headers: {
@@ -97,8 +92,7 @@ export async function POST(request: NextRequest) {
         customerEmail: paymentRecord.reservation?.customer_email,
         customerMobilePhone: paymentRecord.reservation?.customer_phone,
         bank: bankCode,
-        validHours: 168, // 7일
-        // 스플릿 정산 정보는 메타데이터로 저장 (입금 시 웹훅에서 처리)
+        validHours: 168,
         metadata: {
           splitPayment: true,
           branchSubMallId: paymentRecord.branch_submall_id,
@@ -112,7 +106,6 @@ export async function POST(request: NextRequest) {
     const tossData = await tossResponse.json()
 
     if (!tossResponse.ok) {
-      // DB에서 결제 실패 기록
       await supabase
         .from('payments')
         .update({
@@ -127,7 +120,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 가상계좌 정보 DB 업데이트
     const { error: updateError } = await supabase
       .from('payments')
       .update({
@@ -144,7 +136,6 @@ export async function POST(request: NextRequest) {
       console.error('Virtual account update error:', updateError)
     }
 
-    // 예약 상태 업데이트 (결제 대기중)
     if (paymentRecord.reservation_id) {
       await supabase
         .from('reservations')
@@ -164,7 +155,6 @@ export async function POST(request: NextRequest) {
         customerName: tossData.virtualAccount?.customerName,
         dueDate: tossData.virtualAccount?.dueDate,
         amount: paymentRecord.amount,
-        // 스플릿 정산 정보
         splitInfo: {
           branchAmount: paymentRecord.branch_settlement_amount,
           hqAmount: paymentRecord.hq_settlement_amount,
@@ -180,10 +170,10 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-// GET: 가상계좌 정보 조회
-export async function GET(request: NextRequest) {
+// GET: 가상계좌 정보 조회 (인증된 사용자)
+export const GET = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
@@ -233,4 +223,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

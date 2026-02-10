@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
 // 주소 정규화 - 상세 호수 등 제거
 function normalizeAddress(address: string): string {
@@ -16,7 +17,7 @@ function normalizeAddress(address: string): string {
 }
 
 // 카카오 Geocoding API를 사용한 주소 → 좌표 변환
-export async function POST(request: NextRequest) {
+export const POST = withAuth({ auth: 'public', rateLimit: 'default' }, async (request: NextRequest, { user, params }) => {
   try {
     const { address } = await request.json()
 
@@ -91,4 +92,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

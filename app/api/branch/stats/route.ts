@@ -1,29 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-
-// 지점 인증 헬퍼
-async function authenticateBranch(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null
-  }
-
-  const token = authHeader.split(' ')[1]
-  try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
-    if (decoded.exp < Date.now()) {
-      return null
-    }
-    return decoded.branch_id
-  } catch {
-    return null
-  }
-}
+import { authenticateBranch } from '@/lib/auth/branch-token'
 
 // GET: 지점 통계 조회
 export async function GET(request: NextRequest) {
   try {
-    const branchId = await authenticateBranch(request)
+    const branchId = authenticateBranch(request.headers.get('Authorization'))
     if (!branchId) {
       return NextResponse.json(
         { success: false, error: '인증이 필요합니다.' },

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
 // GET: 예약 상세 조회
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -38,15 +36,12 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
 // PUT: 예약 정보 수정 / 상태 변경
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
     const body = await request.json()
 
@@ -139,10 +134,34 @@ export async function PUT(
       })
     }
 
-    // 일반 정보 수정
+    // 일반 정보 수정 - 허용된 필드만 업데이트 (mass assignment 방지)
+    const allowedFields = [
+      'customer_name',
+      'customer_phone',
+      'customer_email',
+      'customer_birth',
+      'license_number',
+      'license_type',
+      'start_date',
+      'end_date',
+      'start_time',
+      'end_time',
+      'pickup_location',
+      'return_location',
+      'options',
+      'customer_memo',
+    ] as const
+
+    const updateData: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (field in body) {
+        updateData[field] = body[field]
+      }
+    }
+
     const { data, error } = await supabase
       .from('reservations')
-      .update(body)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
@@ -165,15 +184,12 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+})
 
 // DELETE: 예약 삭제
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAuth({ auth: 'admin' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
 
     // 예약 취소로 처리 (실제 삭제 X)
@@ -202,4 +218,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})

@@ -120,6 +120,15 @@ export default function LoginPage() {
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </button>
+
+            <div className="text-center">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-gray-500 hover:text-primary"
+              >
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
           </form>
 
           {/* Back to Home */}

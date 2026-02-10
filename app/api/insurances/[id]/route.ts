@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
 // GET: 보험 상세 조회
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth({ auth: 'branch_admin' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -37,21 +35,38 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
 // PUT: 보험 정보 수정
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
     const body = await request.json()
 
+    // 허용된 필드만 업데이트 (mass assignment 방지)
+    const allowedFields = [
+      'insurance_company',
+      'policy_number',
+      'insurance_type',
+      'coverage',
+      'start_date',
+      'end_date',
+      'annual_premium',
+      'monthly_premium',
+      'document_url',
+    ] as const
+
+    const updateData: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (field in body) {
+        updateData[field] = body[field]
+      }
+    }
+
     const { data, error } = await supabase
       .from('vehicle_insurances')
-      .update(body)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
@@ -74,15 +89,12 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+})
 
 // DELETE: 보험 삭제 (비활성화)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAuth({ auth: 'admin' }, async (request: NextRequest, { user, params }) => {
   try {
-    const { id } = await params
+    const id = params?.id
     const supabase = await createClient()
 
     const { error } = await supabase
@@ -107,4 +119,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})

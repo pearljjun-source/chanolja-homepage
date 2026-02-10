@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { generateBranchToken } from '@/lib/auth/branch-token'
 
 // POST: 지점 API 키 인증
 export async function POST(request: NextRequest) {
@@ -31,11 +32,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // JWT 토큰 생성 (간단한 예시 - 실제로는 jose 라이브러리 사용 권장)
-    const token = Buffer.from(JSON.stringify({
-      branch_id: branch.id,
-      exp: Date.now() + 24 * 60 * 60 * 1000 // 24시간
-    })).toString('base64')
+    // HMAC-SHA256 서명된 토큰 생성
+    const token = generateBranchToken(branch.id)
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
-// GET: 결제 목록 조회
-export async function GET(request: NextRequest) {
+// GET: 결제 목록 조회 (admin 이상만)
+export const GET = withAuth({ auth: 'admin', permission: 'manage_payments' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
@@ -80,10 +81,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-// POST: 결제 생성 (결제 준비)
-export async function POST(request: NextRequest) {
+// POST: 결제 생성 (인증된 사용자)
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -145,4 +146,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

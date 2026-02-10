@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
+import { calculateReservationPrice } from '@/lib/pricing/calculate-price'
 
 // GET: 예약 목록 조회
-export async function GET(request: NextRequest) {
+export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
@@ -72,10 +74,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // POST: 예약 생성
-export async function POST(request: NextRequest) {
+export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -95,11 +97,7 @@ export async function POST(request: NextRequest) {
       end_time,
       pickup_location,
       return_location,
-      base_price,
-      discount_amount,
-      insurance_fee,
-      additional_fee,
-      total_price,
+      insurance_id,
       options,
       customer_memo
     } = body
@@ -111,6 +109,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // 서버 사이드 가격 계산 (클라이언트 가격 무시)
+    const pricing = await calculateReservationPrice({
+      vehicle_id,
+      start_date,
+      end_date,
+      insurance_id,
+    })
 
     // 해당 차량이 해당 기간에 예약 가능한지 확인
     const { data: existingReservations } = await supabase
@@ -144,11 +150,11 @@ export async function POST(request: NextRequest) {
         end_time: end_time || '10:00',
         pickup_location,
         return_location,
-        base_price: base_price || 0,
-        discount_amount: discount_amount || 0,
-        insurance_fee: insurance_fee || 0,
-        additional_fee: additional_fee || 0,
-        total_price: total_price || 0,
+        base_price: pricing.base_price,
+        discount_amount: pricing.discount_amount,
+        insurance_fee: pricing.insurance_fee,
+        additional_fee: pricing.additional_fee,
+        total_price: pricing.total_price,
         options: options || {},
         customer_memo,
         status: 'pending',
@@ -175,4 +181,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

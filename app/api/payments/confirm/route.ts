@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { capturePaymentError } from '@/lib/sentry'
+import { withAuth } from '@/lib/auth/with-auth'
 
-// POST: 토스페이먼츠 카드 결제 승인 (스플릿 정산)
-export async function POST(request: NextRequest) {
+// POST: 토스페이먼츠 카드 결제 승인 (인증된 사용자)
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -54,17 +55,14 @@ export async function POST(request: NextRequest) {
     const hqSubMallId = paymentRecord.hq_submall_id || paymentRecord.branch?.hq_submall_id
 
     // 토스페이먼츠 결제 승인 API 호출
-    // Note: 토스페이먼츠 플랫폼 파트너 계정에서 스플릿 정산 설정이 필요합니다
     const tossRequestBody: Record<string, unknown> = {
       paymentKey,
       orderId,
       amount
     }
 
-    // 스플릿 정산 정보가 있는 경우 추가 (플랫폼 파트너 전용)
+    // 스플릿 정산 정보가 있는 경우 추가
     if (branchSubMallId && hqSubMallId) {
-      // 토스페이먼츠 플랫폼 API를 사용하는 경우
-      // 자동 정산 분배가 설정됨 (지점 90%, 본사 10%)
       tossRequestBody.metadata = {
         splitPayment: true,
         branchSubMallId,
@@ -86,7 +84,6 @@ export async function POST(request: NextRequest) {
     const tossData = await tossResponse.json()
 
     if (!tossResponse.ok) {
-      // DB에서 결제 실패 기록
       await supabase
         .from('payments')
         .update({
@@ -101,7 +98,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 결제 성공 - 트랜잭션으로 DB 업데이트 (결제 + 예약 원자적 처리)
+    // 결제 성공 - 트랜잭션으로 DB 업데이트
     const { data: txResult, error: txError } = await supabase
       .rpc('complete_payment_transaction', {
         p_order_id: orderId,
@@ -177,16 +174,13 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Payment confirm error:', error)
-
-    // Sentry에 결제 에러 보고
     capturePaymentError(error, {
       orderId: 'unknown',
       paymentKey: 'unknown',
     })
-
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }
-}
+})

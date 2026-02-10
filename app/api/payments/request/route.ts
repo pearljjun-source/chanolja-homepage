@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { calculateSplitAmountsAsync } from '@/lib/payments/toss-client'
 import { PaymentMethod, BANK_CODES, BankCode } from '@/lib/payments/types'
+import { withAuth } from '@/lib/auth/with-auth'
 
-// POST: 결제 요청 준비 (카드 / 가상계좌)
-export async function POST(request: NextRequest) {
+// POST: 결제 요청 준비 (인증된 사용자)
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     const {
       reservation_id,
       payment_method = 'card',
-      bank // 가상계좌 선택 시 은행
+      bank
     }: {
       reservation_id: string
       payment_method: PaymentMethod
@@ -60,6 +61,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 결제 금액 유효성 검증
+    if (!reservation.total_price || reservation.total_price <= 0) {
+      return NextResponse.json(
+        { success: false, error: '유효하지 않은 결제 금액입니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 동일 reservation_id로 pending 상태 결제가 있으면 기존 것 반환 (멱등성)
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('reservation_id', reservation_id)
+      .in('status', ['pending', 'awaiting_deposit'])
+      .single()
+
+    if (existingPayment) {
+      const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+      return NextResponse.json({
+        success: true,
+        data: {
+          payment_id: existingPayment.id,
+          payment_method: existingPayment.payment_method,
+          orderId: existingPayment.pg_order_id,
+          amount: existingPayment.amount,
+          successUrl: `${baseUrl}/payment/success`,
+          failUrl: `${baseUrl}/payment/fail`,
+        }
+      })
+    }
+
     // 지점 서브몰 ID 확인
     const branchSubMallId = reservation.branch?.submall_id || process.env.DEFAULT_BRANCH_SUBMALL_ID
     const hqSubMallId = reservation.branch?.hq_submall_id || process.env.HQ_SUBMALL_ID
@@ -92,7 +124,6 @@ export async function POST(request: NextRequest) {
       pg_order_id: orderId,
       status: payment_method === 'virtualAccount' ? 'awaiting_deposit' : 'pending',
       settlement_status: 'pending',
-      // 스플릿 정산 정보
       branch_submall_id: branchSubMallId,
       hq_submall_id: hqSubMallId,
       branch_settlement_amount: branchAmount,
@@ -102,7 +133,6 @@ export async function POST(request: NextRequest) {
       settlement_amount: branchAmount
     }
 
-    // 가상계좌의 경우 추가 정보
     if (payment_method === 'virtualAccount' && bank) {
       paymentData.virtual_account_bank = bank
     }
@@ -134,7 +164,6 @@ export async function POST(request: NextRequest) {
       customerMobilePhone: reservation.customer_phone,
       successUrl: `${baseUrl}/payment/success`,
       failUrl: `${baseUrl}/payment/fail`,
-      // 스플릿 정산 정보
       splitInfo: {
         branchSubMallId,
         branchAmount,
@@ -145,7 +174,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 가상계좌의 경우 은행 정보 추가
     if (payment_method === 'virtualAccount' && bank) {
       responseData.bank = bank
       responseData.bankCode = BANK_CODES[bank]
@@ -163,4 +191,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

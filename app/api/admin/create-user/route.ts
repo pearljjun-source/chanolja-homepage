@@ -77,6 +77,22 @@ export async function POST(request: NextRequest) {
       throw error
     }
 
+    // user_roles 테이블에도 역할 저장 (신뢰할 수 있는 역할 소스)
+    if (data.user) {
+      const { error: roleError } = await supabaseAdmin
+        .from('user_roles')
+        .upsert({
+          user_id: data.user.id,
+          role,
+          branch_id: branch_id || null,
+        }, { onConflict: 'user_id' })
+
+      if (roleError) {
+        console.error('Error creating user role:', roleError)
+        // 사용자는 생성되었으나 역할 저장 실패 - 로그 남기고 계속 진행
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: '사용자 계정이 생성되었습니다.',

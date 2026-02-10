@@ -66,18 +66,24 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
     const body = JSON.parse(rawBody)
 
-    // 웹훅 시크릿 검증 (HMAC-SHA256)
+    // 웹훅 시크릿 검증 (HMAC-SHA256) — 필수
     const webhookSecret = process.env.TOSS_PAYMENTS_WEBHOOK_SECRET
-    if (webhookSecret) {
-      const signature = request.headers.get('Toss-Signature') || body.secret
+    if (!webhookSecret) {
+      console.error('TOSS_PAYMENTS_WEBHOOK_SECRET is not configured')
+      return NextResponse.json(
+        { success: false, error: 'Webhook not configured' },
+        { status: 500 }
+      )
+    }
 
-      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-        console.error('Webhook signature verification failed')
-        return NextResponse.json(
-          { success: false, error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
+    const signature = request.headers.get('Toss-Signature') || body.secret
+
+    if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+      console.error('Webhook signature verification failed')
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
     const { eventType, data } = body

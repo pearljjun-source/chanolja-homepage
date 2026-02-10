@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
 // GET: 보험 목록 조회
-export async function GET(request: NextRequest) {
+export const GET = withAuth({ auth: 'branch_admin' }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
@@ -65,10 +66,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // POST: 보험 등록
-export async function POST(request: NextRequest) {
+export const POST = withAuth({ auth: 'branch_admin', branchScoped: true }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -148,4 +149,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

@@ -75,6 +75,7 @@ export interface AuthUser {
 
 /**
  * 현재 인증된 사용자 정보 가져오기
+ * user_roles 테이블에서 역할을 조회 (user_metadata는 클라이언트에서 조작 가능하므로 신뢰하지 않음)
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
@@ -85,9 +86,16 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       return null
     }
 
-    // user_metadata에서 역할 정보 가져오기
-    const role = (user.user_metadata?.role as UserRole) || 'user'
-    const branchId = user.user_metadata?.branch_id as string | undefined
+    // user_roles 테이블에서 역할 조회 (신뢰할 수 있는 소스)
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role, branch_id')
+      .eq('user_id', user.id)
+      .single()
+
+    // user_roles 테이블에 행이 없으면 최소 권한 'user' 적용
+    const role = (userRole?.role as UserRole) || 'user'
+    const branchId = userRole?.branch_id as string | undefined
 
     return {
       id: user.id,

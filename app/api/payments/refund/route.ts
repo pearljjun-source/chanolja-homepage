@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/auth/with-auth'
 
-// POST: 결제 환불
-export async function POST(request: NextRequest) {
+// POST: 결제 환불 (admin 이상만)
+export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, async (request: NextRequest) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -37,7 +38,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 이미 환불된 결제인지 확인
+    if (payment.status === 'refunded') {
+      return NextResponse.json(
+        { success: false, error: '이미 환불된 결제입니다.' },
+        { status: 400 }
+      )
+    }
+
     const actualRefundAmount = refund_amount || payment.amount
+
+    // 환불 금액이 원래 결제 금액을 초과하는지 확인
+    if (actualRefundAmount > payment.amount) {
+      return NextResponse.json(
+        { success: false, error: '환불 금액이 결제 금액을 초과할 수 없습니다.' },
+        { status: 400 }
+      )
+    }
 
     // 토스페이먼츠 시크릿 키
     const secretKey = process.env.TOSS_PAYMENTS_SECRET_KEY
@@ -136,4 +153,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
