@@ -18,6 +18,21 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'inquiry' }, async (re
       )
     }
 
+    // 입력값 길이 제한
+    if (
+      typeof name !== 'string' || name.length > 50 ||
+      typeof phone !== 'string' || phone.length > 20 ||
+      typeof inquiry_type !== 'string' || inquiry_type.length > 30 ||
+      typeof message !== 'string' || message.length > 2000 ||
+      (email && (typeof email !== 'string' || email.length > 100)) ||
+      (region && (typeof region !== 'string' || region.length > 20))
+    ) {
+      return NextResponse.json(
+        { success: false, error: '입력값이 올바르지 않습니다.' },
+        { status: 400 }
+      )
+    }
+
     // Supabase에 문의 저장
     const supabase = await createClient()
     const { error: insertError } = await supabase
