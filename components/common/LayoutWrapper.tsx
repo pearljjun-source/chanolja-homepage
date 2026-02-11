@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
+import FloatingKakaoChat from '@/components/common/FloatingKakaoChat'
 import { ToastProvider } from '@/components/ui/Toast'
 
 export default function LayoutWrapper({
@@ -32,6 +33,7 @@ export default function LayoutWrapper({
           {children}
         </main>
         {!hideHeaderFooter && <Footer />}
+        {!hideHeaderFooter && <FloatingKakaoChat />}
       </div>
     </ToastProvider>
   )

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Send, Phone, MapPin, Clock } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 const inquiryTypes = [
   { value: 'branch', label: '지점 개설' },
@@ -42,20 +41,22 @@ export default function InquirySection() {
     setError('')
 
     try {
-      const supabase = createClient()
-      const { error: insertError } = await supabase
-        .from('inquiries')
-        .insert({
+      const response = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           phone: formData.phone,
           email: formData.email || null,
           region: formData.region || null,
           inquiry_type: formData.inquiryType,
           message: formData.message,
-        })
+        }),
+      })
 
-      if (insertError) {
-        throw insertError
+      if (!response.ok) {
+        const result = await response.json()
+        throw new Error(result.error || '문의 접수 실패')
       }
 
       // 네이버 로그분석 전환스크립트 (신청완료/lead)

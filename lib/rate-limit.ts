@@ -47,6 +47,12 @@ export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     maxRequests: 3,
   },
 
+  // 문의: 1분에 3번
+  inquiry: {
+    interval: 60 * 1000,
+    maxRequests: 3,
+  },
+
   // 조회 API: 1분에 200번 (더 관대함)
   read: {
     interval: 60 * 1000,
