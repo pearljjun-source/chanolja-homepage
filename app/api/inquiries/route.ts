@@ -55,9 +55,11 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'inquiry' }, async (re
     }
 
     // SMS 알림 전송 (실패해도 문의 접수는 성공)
-    sendInquiryNotification({ name, phone, email, region, inquiry_type, message }).catch((err) => {
+    try {
+      await sendInquiryNotification({ name, phone, email, region, inquiry_type, message })
+    } catch (err) {
       console.error('SMS 알림 전송 실패:', err)
-    })
+    }
 
     return NextResponse.json({
       success: true,
