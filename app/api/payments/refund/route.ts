@@ -91,39 +91,58 @@ export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, a
       )
     }
 
-    // 환불 성공 - DB 업데이트
-    const isFullRefund = actualRefundAmount >= payment.amount
-    const newStatus = isFullRefund ? 'refunded' : 'partial_refund'
-
-    const { data: updatedPayment, error: updateError } = await supabase
-      .from('payments')
-      .update({
-        status: newStatus,
-        refund_amount: actualRefundAmount,
-        refund_reason: refund_reason || '고객 요청 환불',
-        refunded_at: new Date().toISOString()
+    // 환불 성공 - DB 트랜잭션으로 원자적 업데이트
+    const { data: txResult, error: txError } = await supabase
+      .rpc('process_refund_transaction', {
+        p_payment_id: payment_id,
+        p_refund_amount: actualRefundAmount,
+        p_refund_reason: refund_reason || '고객 요청 환불',
       })
-      .eq('id', payment_id)
-      .select()
-      .single()
 
-    if (updateError) {
-      console.error('Payment refund update error:', updateError)
+    // RPC 함수가 없는 경우 기존 방식으로 폴백
+    if (txError?.code === 'PGRST202') {
+      console.log('RPC function not found, using fallback method')
+
+      const isFullRefund = actualRefundAmount >= payment.amount
+      const newStatus = isFullRefund ? 'refunded' : 'partial_refund'
+
+      await supabase
+        .from('payments')
+        .update({
+          status: newStatus,
+          refund_amount: actualRefundAmount,
+          refund_reason: refund_reason || '고객 요청 환불',
+          refunded_at: new Date().toISOString()
+        })
+        .eq('id', payment_id)
+
+      if (isFullRefund && payment.reservation_id) {
+        await supabase
+          .from('reservations')
+          .update({
+            status: 'cancelled',
+            payment_status: 'refunded',
+            cancelled_at: new Date().toISOString(),
+            cancel_reason: refund_reason || '결제 환불'
+          })
+          .eq('id', payment.reservation_id)
+      }
+    } else if (txError) {
+      console.error('Refund transaction error:', txError)
+      return NextResponse.json(
+        { success: false, error: '환불 처리 중 오류가 발생했습니다.' },
+        { status: 500 }
+      )
+    } else if (!txResult?.success) {
+      return NextResponse.json(
+        { success: false, error: txResult?.error || '환불 처리 실패' },
+        { status: 400 }
+      )
     }
 
-    // 예약 상태 업데이트 (전액 환불 시)
+    // 전액 환불 시 차량 상태 복구 (별도 쿼리, 비핵심)
+    const isFullRefund = actualRefundAmount >= payment.amount
     if (isFullRefund && payment.reservation_id) {
-      await supabase
-        .from('reservations')
-        .update({
-          status: 'cancelled',
-          payment_status: 'refunded',
-          cancelled_at: new Date().toISOString(),
-          cancel_reason: refund_reason || '결제 환불'
-        })
-        .eq('id', payment.reservation_id)
-
-      // 차량 상태 복구
       const { data: reservation } = await supabase
         .from('reservations')
         .select('vehicle_id')
@@ -141,8 +160,8 @@ export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, a
     return NextResponse.json({
       success: true,
       data: {
-        payment: updatedPayment,
-        refund: tossData
+        refund: tossData,
+        refundAmount: actualRefundAmount,
       },
       message: `${actualRefundAmount.toLocaleString()}원이 환불되었습니다.`
     })

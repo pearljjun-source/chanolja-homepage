@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/auth/with-auth'
 import { calculateReservationPrice } from '@/lib/pricing/calculate-price'
+import { reservationCreateServerSchema } from '@/lib/validations/reservation'
 
 // GET: 예약 목록 조회
 export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { user, params }) => {
@@ -82,6 +83,16 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async
     const supabase = await createClient()
     const body = await request.json()
 
+    // 서버사이드 입력값 검증 (Zod)
+    const parsed = reservationCreateServerSchema.safeParse(body)
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message || '입력값이 올바르지 않습니다.'
+      return NextResponse.json(
+        { success: false, error: firstError },
+        { status: 400 }
+      )
+    }
+
     const {
       branch_id,
       vehicle_id,
@@ -97,18 +108,11 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async
       end_time,
       pickup_location,
       return_location,
-      insurance_id,
+      insurance_id: rawInsuranceId,
       options,
       customer_memo
-    } = body
-
-    // 필수 필드 검증
-    if (!branch_id || !vehicle_id || !customer_name || !customer_phone || !start_date || !end_date) {
-      return NextResponse.json(
-        { success: false, error: '필수 필드가 누락되었습니다.' },
-        { status: 400 }
-      )
-    }
+    } = parsed.data
+    const insurance_id = rawInsuranceId ?? undefined
 
     // 서버 사이드 가격 계산 (클라이언트 가격 무시)
     const pricing = await calculateReservationPrice({

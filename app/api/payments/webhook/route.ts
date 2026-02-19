@@ -20,11 +20,8 @@ function verifyWebhookSignature(
     const signaturePart = parts.find(p => p.startsWith('v1='))
 
     if (!timestampPart || !signaturePart) {
-      // 레거시 방식: 단순 시크릿 비교 (기존 호환성)
-      const expectedBuffer = Buffer.from(secret, 'utf8')
-      const actualBuffer = Buffer.from(signature, 'utf8')
-      if (expectedBuffer.length !== actualBuffer.length) return false
-      return crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+      console.error('Webhook signature format invalid: missing t= or v1=')
+      return false
     }
 
     const timestamp = timestampPart.replace('t=', '')
@@ -76,7 +73,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const signature = request.headers.get('Toss-Signature') || body.secret
+    const signature = request.headers.get('Toss-Signature')
 
     if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
       console.error('Webhook signature verification failed')

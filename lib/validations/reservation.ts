@@ -45,6 +45,35 @@ export const reservationSchema = z.object({
 
 export type ReservationFormData = z.infer<typeof reservationSchema>
 
+// 서버사이드 예약 생성 스키마 (API에서 사용)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export const reservationCreateServerSchema = z.object({
+  branch_id: z.string().regex(uuidRegex, '유효하지 않은 지점 ID입니다'),
+  vehicle_id: z.string().regex(uuidRegex, '유효하지 않은 차량 ID입니다'),
+  customer_name: z.string().min(1, '이름을 입력해주세요').max(50, '이름은 50자 이하로 입력해주세요'),
+  customer_phone: z.string().min(1, '연락처를 입력해주세요').max(20, '연락처가 너무 깁니다')
+    .regex(/^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/, '올바른 휴대폰 번호 형식이 아닙니다'),
+  customer_email: z.string().email('올바른 이메일 형식이 아닙니다').max(100).optional().or(z.literal('')).or(z.null()),
+  customer_birth: z.string().max(20).optional().or(z.literal('')).or(z.null()),
+  license_number: z.string().max(50).optional().or(z.literal('')).or(z.null()),
+  license_type: z.string().max(20).optional().or(z.literal('')).or(z.null()),
+  start_date: z.string().min(1, '대여 시작일을 선택해주세요').regex(/^\d{4}-\d{2}-\d{2}/, '날짜 형식이 올바르지 않습니다'),
+  end_date: z.string().min(1, '반납일을 선택해주세요').regex(/^\d{4}-\d{2}-\d{2}/, '날짜 형식이 올바르지 않습니다'),
+  start_time: z.string().max(10).optional().or(z.literal('')).or(z.null()),
+  end_time: z.string().max(10).optional().or(z.literal('')).or(z.null()),
+  pickup_location: z.string().max(200).optional().or(z.literal('')).or(z.null()),
+  return_location: z.string().max(200).optional().or(z.literal('')).or(z.null()),
+  insurance_id: z.string().regex(uuidRegex, '유효하지 않은 보험 ID입니다').optional().or(z.null()),
+  options: z.record(z.string(), z.unknown()).optional().or(z.null()),
+  customer_memo: z.string().max(500, '메모는 500자 이하로 입력해주세요').optional().or(z.literal('')).or(z.null()),
+}).refine(
+  (data) => new Date(data.end_date) >= new Date(data.start_date),
+  { message: '반납일은 대여 시작일 이후여야 합니다', path: ['end_date'] }
+)
+
+export type ReservationCreateServerData = z.infer<typeof reservationCreateServerSchema>
+
 // 문의 폼 스키마
 export const inquirySchema = z.object({
   name: z
