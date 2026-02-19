@@ -29,8 +29,8 @@ interface SolapiResponse {
  * 솔라피 인증 헤더 생성 (HMAC-SHA256)
  */
 function getAuthHeaders(): Record<string, string> {
-  const apiKey = process.env.SOLAPI_API_KEY!
-  const apiSecret = process.env.SOLAPI_API_SECRET!
+  const apiKey = process.env.SOLAPI_API_KEY!.trim()
+  const apiSecret = process.env.SOLAPI_API_SECRET!.trim()
   const date = new Date().toISOString()
   const salt = crypto.randomBytes(32).toString('hex')
   const signature = crypto
@@ -49,9 +49,9 @@ function getAuthHeaders(): Record<string, string> {
  * 메시지 길이가 90바이트를 초과하면 자동으로 LMS로 전송됩니다.
  */
 export async function sendSMS({ receiver, message, subject }: SendSMSOptions): Promise<SolapiResponse> {
-  const apiKey = process.env.SOLAPI_API_KEY
-  const apiSecret = process.env.SOLAPI_API_SECRET
-  const sender = process.env.SOLAPI_SENDER
+  const apiKey = process.env.SOLAPI_API_KEY?.trim()
+  const apiSecret = process.env.SOLAPI_API_SECRET?.trim()
+  const sender = process.env.SOLAPI_SENDER?.trim()
 
   if (!apiKey || !apiSecret || !sender) {
     console.error('Solapi SMS: 환경변수가 설정되지 않았습니다 (SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER)')
@@ -103,7 +103,7 @@ export async function sendInquiryNotification(inquiry: {
   inquiry_type: string
   message: string
 }): Promise<void> {
-  const adminPhone = process.env.ADMIN_PHONE_NUMBER
+  const adminPhone = process.env.ADMIN_PHONE_NUMBER?.trim()
   if (!adminPhone) {
     console.error('Solapi SMS: ADMIN_PHONE_NUMBER가 설정되지 않았습니다')
     return
