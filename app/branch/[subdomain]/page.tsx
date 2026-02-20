@@ -118,7 +118,7 @@ export default function BranchHomePage() {
   }
 
   // 테마 설정
-  const theme = getTheme((branch as any).theme)
+  const theme = getTheme(branch.theme)
   const tc = themeClasses[theme]
 
   return (

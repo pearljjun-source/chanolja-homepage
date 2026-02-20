@@ -23,12 +23,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     // subdomain 또는 name으로 지점 찾기
-    let branch = branches.find((b: any) => b.subdomain === subdomain)
+    let branch = branches.find(b => b.subdomain === subdomain)
     if (!branch) {
-      branch = branches.find((b: any) => b.name === subdomain)
+      branch = branches.find(b => b.name === subdomain)
     }
     if (!branch) {
-      branch = branches.find((b: any) => b.name.includes(subdomain))
+      branch = branches.find(b => b.name.includes(subdomain))
     }
 
     if (!branch) {

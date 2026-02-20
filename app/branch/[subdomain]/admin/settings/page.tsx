@@ -178,9 +178,9 @@ export default function BranchSettingsPage() {
       }
 
       setTimeout(() => setMessage(null), 5000)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading images:', error)
-      setMessage({ type: 'error', text: `이미지 업로드 오류: ${error?.message || error}` })
+      setMessage({ type: 'error', text: `이미지 업로드 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}` })
     } finally {
       setUploading(false)
       if (fileInputRef.current) {
@@ -255,9 +255,9 @@ export default function BranchSettingsPage() {
 
       // 3초 후 메시지 제거
       setTimeout(() => setMessage(null), 3000)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving settings:', error)
-      const errorMessage = error?.message || '저장 중 오류가 발생했습니다.'
+      const errorMessage = error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.'
       setMessage({ type: 'error', text: `저장 실패: ${errorMessage}` })
     } finally {
       setSaving(false)

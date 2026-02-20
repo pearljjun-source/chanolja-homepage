@@ -136,13 +136,13 @@ export default function AdminBranchesPage() {
       const workbook = XLSX.read(data, { type: 'binary' })
       const sheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[sheetName]
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][]
 
       // 헤더 행 찾기 (번호, 지점 등이 있는 행)
       let headerRowIndex = -1
       for (let i = 0; i < Math.min(10, jsonData.length); i++) {
         const row = jsonData[i]
-        if (row && row.some((cell: any) => cell === '지 점' || cell === '지점')) {
+        if (row && row.some((cell: unknown) => cell === '지 점' || cell === '지점')) {
           headerRowIndex = i
           break
         }

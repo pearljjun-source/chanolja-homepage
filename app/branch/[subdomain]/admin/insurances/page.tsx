@@ -175,7 +175,7 @@ export default function BranchAdminInsurancesPage() {
   }
 
   const handleEditInsurance = (insurance: VehicleInsurance) => {
-    const coverage = insurance.coverage as any
+    const coverage = insurance.coverage
     setEditingInsurance(insurance)
     setSelectedVehicle(insurance.vehicle_id)
     setInsuranceForm({
@@ -375,7 +375,7 @@ export default function BranchAdminInsurancesPage() {
         <div className="grid gap-4">
           {insurances.map((insurance) => {
             const expiryStatus = getExpiryStatus(insurance.end_date)
-            const vehicle = insurance.vehicle as any
+            const vehicle = insurance.vehicle
 
             return (
               <div
@@ -433,9 +433,9 @@ export default function BranchAdminInsurancesPage() {
                   {/* 보장 내용 */}
                   <div className="flex-1">
                     <div className="text-xs text-gray-500 space-y-1">
-                      <p>대인: {formatCurrency((insurance.coverage as any)?.liability_per_person || 0)}</p>
-                      <p>대물: {formatCurrency((insurance.coverage as any)?.property_damage || 0)}</p>
-                      <p>자차: {(insurance.coverage as any)?.self_damage ? '가입' : '미가입'}</p>
+                      <p>대인: {formatCurrency(insurance.coverage?.liability_per_person || 0)}</p>
+                      <p>대물: {formatCurrency(insurance.coverage?.property_damage || 0)}</p>
+                      <p>자차: {insurance.coverage?.self_damage ? '가입' : '미가입'}</p>
                     </div>
                   </div>
 

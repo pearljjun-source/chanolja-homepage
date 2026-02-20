@@ -270,7 +270,7 @@ export default function AdminPaymentsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-mono text-sm text-primary">
-                          {(payment as any).reservation?.reservation_number || '-'}
+                          {payment.reservation?.reservation_number || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4">

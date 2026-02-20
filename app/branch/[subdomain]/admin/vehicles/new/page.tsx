@@ -251,9 +251,9 @@ export default function NewBranchVehiclePage() {
       } else {
         toast.error(result.error || '차량 등록에 실패했습니다.')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Vehicle registration error:', error)
-      toast.error(`차량 등록 중 오류가 발생했습니다: ${error?.message || error}`)
+      toast.error(`차량 등록 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     } finally {
       setSaving(false)
     }
@@ -341,9 +341,9 @@ export default function NewBranchVehiclePage() {
           return { ...prev, images: newImages, thumbnail_url: newThumbnail }
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading image:', error)
-      toast.error(`이미지 업로드 중 오류: ${error?.message || error}`)
+      toast.error(`이미지 업로드 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     } finally {
       setUploading(false)
       if (fileInputRef.current) {

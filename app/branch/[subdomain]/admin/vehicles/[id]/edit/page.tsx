@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Car, Shield, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
-import type { Vehicle } from '@/types/database'
+import type { Vehicle, VehicleInsurance } from '@/types/database'
 
 interface VehicleForm {
   name: string
@@ -163,7 +163,7 @@ export default function EditBranchVehiclePage() {
 
         // 보험 정보가 있으면 설정
         if (vehicle.insurance && vehicle.insurance.length > 0) {
-          const activeInsurance = vehicle.insurance.find((ins: any) => ins.is_active) || vehicle.insurance[0]
+          const activeInsurance = (vehicle.insurance as VehicleInsurance[]).find(ins => ins.is_active) || vehicle.insurance[0]
           setHasInsurance(true)
           setInsuranceForm({
             id: activeInsurance.id,

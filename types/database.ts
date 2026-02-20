@@ -42,6 +42,7 @@ export interface Branch {
   banner_url: string | null
   // 관리자 필드
   admin_email: string | null
+  theme: string | null
   // 스플릿 결제 필드
   submall_id: string | null
   hq_submall_id: string | null
