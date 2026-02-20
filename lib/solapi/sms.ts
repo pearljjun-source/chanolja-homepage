@@ -54,8 +54,7 @@ export async function sendSMS({ receiver, message, subject }: SendSMSOptions): P
   const sender = process.env.SOLAPI_SENDER?.trim()
 
   if (!apiKey || !apiSecret || !sender) {
-    console.error('Solapi SMS: 환경변수가 설정되지 않았습니다 (SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER)')
-    return { errorCode: 'ENV_MISSING', errorMessage: '환경변수 미설정' }
+    throw new Error('Solapi SMS: 환경변수가 설정되지 않았습니다 (SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER)')
   }
 
   // 90바이트 초과 시 LMS
@@ -82,13 +81,15 @@ export async function sendSMS({ receiver, message, subject }: SendSMSOptions): P
     const result: SolapiResponse = await response.json()
 
     if (!response.ok) {
-      console.error('Solapi SMS 전송 실패:', result)
+      throw new Error(`Solapi SMS 전송 실패: ${result.errorCode || response.status} - ${result.errorMessage || '알 수 없는 오류'}`)
     }
 
     return result
   } catch (error) {
-    console.error('Solapi SMS 전송 오류:', error)
-    return { errorCode: 'FETCH_ERROR', errorMessage: '전송 중 오류 발생' }
+    if (error instanceof Error && error.message.startsWith('Solapi SMS')) {
+      throw error
+    }
+    throw new Error(`Solapi SMS 전송 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
   }
 }
 
@@ -105,8 +106,7 @@ export async function sendInquiryNotification(inquiry: {
 }): Promise<void> {
   const adminPhone = process.env.ADMIN_PHONE_NUMBER?.trim()
   if (!adminPhone) {
-    console.error('Solapi SMS: ADMIN_PHONE_NUMBER가 설정되지 않았습니다')
-    return
+    throw new Error('Solapi SMS: ADMIN_PHONE_NUMBER가 설정되지 않았습니다')
   }
 
   const typeLabels: Record<string, string> = {

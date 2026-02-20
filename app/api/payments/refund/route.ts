@@ -31,17 +31,16 @@ export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, a
       )
     }
 
-    if (payment.status !== 'completed') {
+    if (payment.status === 'refunded') {
       return NextResponse.json(
-        { success: false, error: '완료된 결제만 환불 가능합니다.' },
+        { success: false, error: '이미 환불된 결제입니다.' },
         { status: 400 }
       )
     }
 
-    // 이미 환불된 결제인지 확인
-    if (payment.status === 'refunded') {
+    if (payment.status !== 'completed') {
       return NextResponse.json(
-        { success: false, error: '이미 환불된 결제입니다.' },
+        { success: false, error: '완료된 결제만 환불 가능합니다.' },
         { status: 400 }
       )
     }
