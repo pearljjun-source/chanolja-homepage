@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Search, Edit, Trash2, MapPin, Phone, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 
 // Dynamic import for xlsx to reduce initial bundle size
 const loadXLSX = () => import('xlsx')
@@ -70,6 +71,7 @@ function extractRegion(address: string): string {
 }
 
 export default function AdminBranchesPage() {
+  const toast = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -147,7 +149,7 @@ export default function AdminBranchesPage() {
       }
 
       if (headerRowIndex === -1) {
-        alert('엑셀 파일 형식이 올바르지 않습니다. "지점" 열을 찾을 수 없습니다.')
+        toast.error('엑셀 파일 형식이 올바르지 않습니다.', '"지점" 열을 찾을 수 없습니다.')
         return
       }
 
@@ -208,11 +210,11 @@ export default function AdminBranchesPage() {
 
         if (duplicates.length > 0) {
           const duplicateNames = duplicates.map(d => d.name).join(', ')
-          alert(`다음 지점이 이미 존재합니다: ${duplicateNames}\n\n중복된 지점은 제외하고 등록합니다.`)
+          toast.warning('중복 지점 발견', `${duplicateNames} — 중복된 지점은 제외하고 등록합니다.`)
           // 중복 제외
           const filteredData = uploadData.filter(item => !existingNames.has(item.name))
           if (filteredData.length === 0) {
-            alert('등록할 새 지점이 없습니다.')
+            toast.info('등록할 새 지점이 없습니다.')
             setUploading(false)
             return
           }
@@ -229,13 +231,13 @@ export default function AdminBranchesPage() {
 
       if (error) throw error
 
-      alert(`${dataToInsert.length}개의 지점이 성공적으로 등록되었습니다.`)
+      toast.success(`${dataToInsert.length}개의 지점이 성공적으로 등록되었습니다.`)
       setShowUploadModal(false)
       setUploadData([])
       fetchBranches()
     } catch (error) {
       console.error('Error uploading branches:', error)
-      alert('지점 등록 중 오류가 발생했습니다.')
+      toast.error('지점 등록 중 오류가 발생했습니다.')
     } finally {
       setUploading(false)
     }
@@ -270,7 +272,7 @@ export default function AdminBranchesPage() {
   // 지점 저장 (추가/수정)
   const saveBranch = async () => {
     if (!editingBranch || !editingBranch.name.trim()) {
-      alert('지점명을 입력해주세요.')
+      toast.warning('지점명을 입력해주세요.')
       return
     }
 
@@ -287,7 +289,7 @@ export default function AdminBranchesPage() {
         .single()
 
       if (existingBranch) {
-        alert(`"${editingBranch.name}" 이름의 지점이 이미 존재합니다.`)
+        toast.warning(`"${editingBranch.name}" 이름의 지점이 이미 존재합니다.`)
         setSaving(false)
         return
       }
@@ -325,7 +327,7 @@ export default function AdminBranchesPage() {
         setBranches(prev =>
           prev.map(b => b.id === editingBranch.id ? { ...b, ...branchData, id: editingBranch.id } : b)
         )
-        alert('지점이 수정되었습니다.')
+        toast.success('지점이 수정되었습니다.')
       } else {
         // 추가
         const { data, error } = await supabase
@@ -340,7 +342,7 @@ export default function AdminBranchesPage() {
         }
 
         setBranches(prev => [...prev, data])
-        alert('지점이 추가되었습니다.')
+        toast.success('지점이 추가되었습니다.')
       }
 
       setShowEditModal(false)
@@ -348,7 +350,7 @@ export default function AdminBranchesPage() {
       setAdminPassword('')
     } catch (error) {
       console.error('Error saving branch:', error)
-      alert('저장 중 오류가 발생했습니다.')
+      toast.error('저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }
@@ -357,15 +359,15 @@ export default function AdminBranchesPage() {
   // 관리자 계정 생성
   const createAdminAccount = async () => {
     if (!editingBranch?.admin_email) {
-      alert('관리자 이메일을 먼저 입력해주세요.')
+      toast.warning('관리자 이메일을 먼저 입력해주세요.')
       return
     }
     if (!adminPassword) {
-      alert('비밀번호를 입력해주세요.')
+      toast.warning('비밀번호를 입력해주세요.')
       return
     }
     if (adminPassword.length < 6) {
-      alert('비밀번호는 최소 6자 이상이어야 합니다.')
+      toast.warning('비밀번호는 최소 6자 이상이어야 합니다.')
       return
     }
 
@@ -384,18 +386,18 @@ export default function AdminBranchesPage() {
 
       if (!response.ok) {
         if (result.exists) {
-          alert('이미 등록된 이메일입니다. 기존 계정으로 로그인 가능합니다.')
+          toast.info('이미 등록된 이메일입니다.', '기존 계정으로 로그인 가능합니다.')
         } else {
-          alert(result.error || '계정 생성에 실패했습니다.')
+          toast.error(result.error || '계정 생성에 실패했습니다.')
         }
         return
       }
 
-      alert('관리자 계정이 생성되었습니다!')
+      toast.success('관리자 계정이 생성되었습니다!')
       setAdminPassword('')
     } catch (error) {
       console.error('Error creating admin account:', error)
-      alert('계정 생성 중 오류가 발생했습니다.')
+      toast.error('계정 생성 중 오류가 발생했습니다.')
     } finally {
       setCreatingAccount(false)
     }
@@ -425,7 +427,7 @@ export default function AdminBranchesPage() {
     )
 
     if (branchesWithoutCoords.length === 0) {
-      alert('모든 지점에 좌표가 설정되어 있습니다.')
+      toast.info('모든 지점에 좌표가 설정되어 있습니다.')
       return
     }
 
@@ -468,7 +470,7 @@ export default function AdminBranchesPage() {
     }
 
     setGeocoding(false)
-    alert(`${successCount}개 지점의 좌표가 업데이트되었습니다.`)
+    toast.success(`${successCount}개 지점의 좌표가 업데이트되었습니다.`)
   }
 
   const filteredBranches = branches.filter((branch) =>

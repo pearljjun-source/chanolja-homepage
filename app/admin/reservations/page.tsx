@@ -15,6 +15,7 @@ import {
   Phone
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Reservation, Branch, Vehicle } from '@/types/database'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -34,6 +35,7 @@ const paymentStatusLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default function AdminReservationsPage() {
+  const toast = useToast()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,13 +100,13 @@ export default function AdminReservationsPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert(result.message)
+        toast.success(result.message)
         fetchReservations()
       } else {
-        alert(result.error || '상태 변경에 실패했습니다.')
+        toast.error(result.error || '상태 변경에 실패했습니다.')
       }
     } catch (error) {
-      alert('상태 변경 중 오류가 발생했습니다.')
+      toast.error('상태 변경 중 오류가 발생했습니다.')
     }
   }
 

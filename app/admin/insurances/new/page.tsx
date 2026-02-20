@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle } from '@/types/database'
 
 export default function NewInsurancePage() {
+  const toast = useToast()
   const router = useRouter()
   const [branches, setBranches] = useState<Branch[]>([])
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
@@ -70,17 +72,17 @@ export default function NewInsurancePage() {
     e.preventDefault()
 
     if (!formData.branch_id || !formData.vehicle_id) {
-      alert('지점과 차량을 선택해주세요.')
+      toast.warning('지점과 차량을 선택해주세요.')
       return
     }
 
     if (!formData.insurance_company) {
-      alert('보험사를 입력해주세요.')
+      toast.warning('보험사를 입력해주세요.')
       return
     }
 
     if (!formData.start_date || !formData.end_date) {
-      alert('보험 기간을 입력해주세요.')
+      toast.warning('보험 기간을 입력해주세요.')
       return
     }
 
@@ -96,13 +98,13 @@ export default function NewInsurancePage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('보험이 등록되었습니다.')
+        toast.success('보험이 등록되었습니다.')
         router.push('/admin/insurances')
       } else {
-        alert(result.error || '등록에 실패했습니다.')
+        toast.error(result.error || '등록에 실패했습니다.')
       }
     } catch (error) {
-      alert('등록 중 오류가 발생했습니다.')
+      toast.error('등록 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }

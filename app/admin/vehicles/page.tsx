@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Vehicle, Branch } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -34,6 +35,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default function AdminVehiclesPage() {
+  const toast = useToast()
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,13 +100,13 @@ export default function AdminVehiclesPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('차량이 삭제되었습니다.')
+        toast.success('차량이 삭제되었습니다.')
         fetchVehicles()
       } else {
-        alert(result.error || '삭제에 실패했습니다.')
+        toast.error(result.error || '삭제에 실패했습니다.')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
   }
 

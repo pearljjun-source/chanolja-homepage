@@ -5,9 +5,11 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle, VehicleInsurance } from '@/types/database'
 
 export default function EditInsurancePage() {
+  const toast = useToast()
   const router = useRouter()
   const params = useParams()
   const insuranceId = params.id as string
@@ -69,7 +71,7 @@ export default function EditInsurancePage() {
         .single()
 
       if (error || !data) {
-        alert('보험 정보를 찾을 수 없습니다.')
+        toast.error('보험 정보를 찾을 수 없습니다.')
         router.push('/admin/insurances')
         return
       }
@@ -95,7 +97,7 @@ export default function EditInsurancePage() {
       })
     } catch (error) {
       console.error('Failed to fetch insurance:', error)
-      alert('보험 정보를 불러오는 중 오류가 발생했습니다.')
+      toast.error('보험 정보를 불러오는 중 오류가 발생했습니다.')
     } finally {
       setPageLoading(false)
     }
@@ -117,17 +119,17 @@ export default function EditInsurancePage() {
     e.preventDefault()
 
     if (!formData.branch_id || !formData.vehicle_id) {
-      alert('지점과 차량을 선택해주세요.')
+      toast.warning('지점과 차량을 선택해주세요.')
       return
     }
 
     if (!formData.insurance_company) {
-      alert('보험사를 입력해주세요.')
+      toast.warning('보험사를 입력해주세요.')
       return
     }
 
     if (!formData.start_date || !formData.end_date) {
-      alert('보험 기간을 입력해주세요.')
+      toast.warning('보험 기간을 입력해주세요.')
       return
     }
 
@@ -143,13 +145,13 @@ export default function EditInsurancePage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('보험 정보가 수정되었습니다.')
+        toast.success('보험 정보가 수정되었습니다.')
         router.push('/admin/insurances')
       } else {
-        alert(result.error || '수정에 실패했습니다.')
+        toast.error(result.error || '수정에 실패했습니다.')
       }
     } catch (error) {
-      alert('수정 중 오류가 발생했습니다.')
+      toast.error('수정 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }

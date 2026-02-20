@@ -17,6 +17,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle, Reservation, ReservationStatus } from '@/types/database'
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
@@ -33,6 +34,7 @@ const paymentStatusConfig: Record<string, { label: string; color: string }> = {
 }
 
 export default function BranchReservationsPage() {
+  const toast = useToast()
   const params = useParams()
   const searchParams = useSearchParams()
   const subdomain = params.subdomain as string
@@ -107,10 +109,10 @@ export default function BranchReservationsPage() {
           )
         )
       } else {
-        alert(result.error || '상태 변경에 실패했습니다.')
+        toast.error(result.error || '상태 변경에 실패했습니다.')
       }
     } catch (error) {
-      alert('상태 변경 중 오류가 발생했습니다.')
+      toast.error('상태 변경 중 오류가 발생했습니다.')
     } finally {
       setUpdating(null)
     }

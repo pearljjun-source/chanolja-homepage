@@ -5,9 +5,11 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle } from '@/types/database'
 
 export default function EditVehiclePage() {
+  const toast = useToast()
   const params = useParams()
   const id = params.id as string
   const router = useRouter()
@@ -79,7 +81,7 @@ export default function EditVehiclePage() {
           status: vehicle.status || 'available'
         })
       } else {
-        alert('차량을 찾을 수 없습니다.')
+        toast.error('차량을 찾을 수 없습니다.')
         router.push('/admin/vehicles')
       }
     } catch (error) {
@@ -93,7 +95,7 @@ export default function EditVehiclePage() {
     e.preventDefault()
 
     if (!formData.name || formData.price_per_day <= 0) {
-      alert('차량명과 일 요금을 확인해주세요.')
+      toast.warning('차량명과 일 요금을 확인해주세요.')
       return
     }
 
@@ -109,13 +111,13 @@ export default function EditVehiclePage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('차량 정보가 수정되었습니다.')
+        toast.success('차량 정보가 수정되었습니다.')
         router.push(`/admin/vehicles/${id}`)
       } else {
-        alert(result.error || '수정에 실패했습니다.')
+        toast.error(result.error || '수정에 실패했습니다.')
       }
     } catch (error) {
-      alert('수정 중 오류가 발생했습니다.')
+      toast.error('수정 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

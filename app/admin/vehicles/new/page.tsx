@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Upload, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch } from '@/types/database'
 
 export default function NewVehiclePage() {
+  const toast = useToast()
   const router = useRouter()
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(false)
@@ -52,17 +54,17 @@ export default function NewVehiclePage() {
     e.preventDefault()
 
     if (!formData.branch_id) {
-      alert('지점을 선택해주세요.')
+      toast.warning('지점을 선택해주세요.')
       return
     }
 
     if (!formData.name) {
-      alert('차량명을 입력해주세요.')
+      toast.warning('차량명을 입력해주세요.')
       return
     }
 
     if (formData.price_per_day <= 0) {
-      alert('일 요금을 입력해주세요.')
+      toast.warning('일 요금을 입력해주세요.')
       return
     }
 
@@ -78,13 +80,13 @@ export default function NewVehiclePage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('차량이 등록되었습니다.')
+        toast.success('차량이 등록되었습니다.')
         router.push('/admin/vehicles')
       } else {
-        alert(result.error || '등록에 실패했습니다.')
+        toast.error(result.error || '등록에 실패했습니다.')
       }
     } catch (error) {
-      alert('등록 중 오류가 발생했습니다.')
+      toast.error('등록 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }

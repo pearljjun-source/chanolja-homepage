@@ -14,9 +14,11 @@ import {
   Car
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Review } from '@/types/database'
 
 export default function BranchAdminReviewsPage() {
+  const toast = useToast()
   const params = useParams()
   const subdomain = params.subdomain as string
   const decodedSubdomain = decodeURIComponent(subdomain)
@@ -97,10 +99,10 @@ export default function BranchAdminReviewsPage() {
         prev.map(r => (r.id === reviewId ? { ...r, is_approved: true, is_visible: true } : r))
       )
 
-      alert('후기가 승인되었습니다.')
+      toast.success('후기가 승인되었습니다.')
     } catch (error) {
       console.error('Error approving review:', error)
-      alert('승인 처리 중 오류가 발생했습니다. 콘솔을 확인해주세요.')
+      toast.error('승인 처리 중 오류가 발생했습니다.')
     }
   }
 
@@ -119,7 +121,7 @@ export default function BranchAdminReviewsPage() {
       setReviews(prev => prev.filter(r => r.id !== reviewId))
     } catch (error) {
       console.error('Error deleting review:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -138,7 +140,7 @@ export default function BranchAdminReviewsPage() {
       )
     } catch (error) {
       console.error('Error toggling visibility:', error)
-      alert('처리 중 오류가 발생했습니다.')
+      toast.error('처리 중 오류가 발생했습니다.')
     }
   }
 

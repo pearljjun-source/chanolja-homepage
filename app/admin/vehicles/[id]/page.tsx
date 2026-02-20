@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Save, Car, Edit, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Vehicle, Branch } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -38,6 +39,7 @@ const transmissionLabels: Record<string, string> = {
 }
 
 export default function VehicleDetailPage() {
+  const toast = useToast()
   const params = useParams()
   const id = params.id as string
   const router = useRouter()
@@ -56,7 +58,7 @@ export default function VehicleDetailPage() {
       if (result.success) {
         setVehicle(result.data)
       } else {
-        alert('차량을 찾을 수 없습니다.')
+        toast.error('차량을 찾을 수 없습니다.')
         router.push('/admin/vehicles')
       }
     } catch (error) {
@@ -76,13 +78,13 @@ export default function VehicleDetailPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('차량이 삭제되었습니다.')
+        toast.success('차량이 삭제되었습니다.')
         router.push('/admin/vehicles')
       } else {
-        alert(result.error || '삭제에 실패했습니다.')
+        toast.error(result.error || '삭제에 실패했습니다.')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
   }
 

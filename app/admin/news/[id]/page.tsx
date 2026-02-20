@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import { revalidateNews } from '@/app/actions/news'
 
 const categories = [
@@ -15,6 +16,7 @@ const categories = [
 ]
 
 export default function EditNewsPage() {
+  const toast = useToast()
   const params = useParams()
   const id = params.id as string
   const router = useRouter()
@@ -78,7 +80,7 @@ export default function EditNewsPage() {
       router.push('/admin/news')
     } catch (error) {
       console.error('Error updating news:', error)
-      alert('뉴스 수정 중 오류가 발생했습니다.')
+      toast.error('뉴스 수정 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

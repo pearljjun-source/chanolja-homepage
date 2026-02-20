@@ -17,9 +17,11 @@ import {
   Trash2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle, VehicleInsurance } from '@/types/database'
 
 export default function BranchAdminInsurancesPage() {
+  const toast = useToast()
   const params = useParams()
   const subdomain = params.subdomain as string
   const decodedSubdomain = decodeURIComponent(subdomain)
@@ -123,7 +125,7 @@ export default function BranchAdminInsurancesPage() {
 
   const handleAddInsurance = async () => {
     if (!branch || !selectedVehicle) {
-      alert('차량을 선택해주세요.')
+      toast.warning('차량을 선택해주세요.')
       return
     }
 
@@ -157,16 +159,16 @@ export default function BranchAdminInsurancesPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('보험이 등록되었습니다.')
+        toast.success('보험이 등록되었습니다.')
         setShowAddModal(false)
         setSelectedVehicle('')
         fetchData()
       } else {
-        alert(result.error || '보험 등록에 실패했습니다.')
+        toast.error(result.error || '보험 등록에 실패했습니다.')
       }
     } catch (error) {
       console.error('Error adding insurance:', error)
-      alert('보험 등록 중 오류가 발생했습니다.')
+      toast.error('보험 등록 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }
@@ -221,14 +223,14 @@ export default function BranchAdminInsurancesPage() {
 
       if (error) throw error
 
-      alert('보험 정보가 수정되었습니다.')
+      toast.success('보험 정보가 수정되었습니다.')
       setShowEditModal(false)
       setEditingInsurance(null)
       resetForm()
       fetchData()
     } catch (error) {
       console.error('Error updating insurance:', error)
-      alert('수정 중 오류가 발생했습니다.')
+      toast.error('수정 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }
@@ -264,10 +266,10 @@ export default function BranchAdminInsurancesPage() {
       if (error) throw error
 
       setInsurances(prev => prev.filter(i => i.id !== insuranceId))
-      alert('보험 정보가 삭제되었습니다.')
+      toast.success('보험 정보가 삭제되었습니다.')
     } catch (error) {
       console.error('Error deleting insurance:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
   }
 

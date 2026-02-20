@@ -15,6 +15,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { VehicleInsurance, Branch, Vehicle } from '@/types/database'
 
 const insuranceTypeLabels: Record<string, string> = {
@@ -23,6 +24,7 @@ const insuranceTypeLabels: Record<string, string> = {
 }
 
 export default function AdminInsurancesPage() {
+  const toast = useToast()
   const [insurances, setInsurances] = useState<VehicleInsurance[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -101,13 +103,13 @@ export default function AdminInsurancesPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert('보험 정보가 삭제되었습니다.')
+        toast.success('보험 정보가 삭제되었습니다.')
         fetchInsurances()
       } else {
-        alert(result.error || '삭제에 실패했습니다.')
+        toast.error(result.error || '삭제에 실패했습니다.')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
   }
 

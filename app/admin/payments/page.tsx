@@ -14,6 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Payment, Branch } from '@/types/database'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -40,6 +41,7 @@ const paymentMethodLabels: Record<string, string> = {
 }
 
 export default function AdminPaymentsPage() {
+  const toast = useToast()
   const [payments, setPayments] = useState<Payment[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -123,13 +125,13 @@ export default function AdminPaymentsPage() {
       const result = await response.json()
 
       if (result.success) {
-        alert(result.message)
+        toast.success(result.message)
         fetchPayments()
       } else {
-        alert(result.error || '환불 처리에 실패했습니다.')
+        toast.error(result.error || '환불 처리에 실패했습니다.')
       }
     } catch (error) {
-      alert('환불 중 오류가 발생했습니다.')
+      toast.error('환불 중 오류가 발생했습니다.')
     }
   }
 

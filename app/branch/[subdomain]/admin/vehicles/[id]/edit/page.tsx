@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Car, Shield, ShieldCheck, ShieldAlert } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 import type { Vehicle } from '@/types/database'
 
 interface VehicleForm {
@@ -83,6 +84,7 @@ const featureOptions = [
 ]
 
 export default function EditBranchVehiclePage() {
+  const toast = useToast()
   const router = useRouter()
   const params = useParams()
   const subdomain = params.subdomain as string
@@ -179,12 +181,12 @@ export default function EditBranchVehiclePage() {
           })
         }
       } else {
-        alert('차량 정보를 찾을 수 없습니다.')
+        toast.error('차량 정보를 찾을 수 없습니다.')
         router.push(`/branch/${subdomain}/admin/vehicles`)
       }
     } catch (error) {
       console.error('Error fetching vehicle:', error)
-      alert('차량 정보를 불러오는 중 오류가 발생했습니다.')
+      toast.error('차량 정보를 불러오는 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -194,7 +196,7 @@ export default function EditBranchVehiclePage() {
     e.preventDefault()
 
     if (!form.name || !form.brand) {
-      alert('차량명과 브랜드는 필수입니다.')
+      toast.warning('차량명과 브랜드는 필수입니다.')
       return
     }
 
@@ -213,7 +215,7 @@ export default function EditBranchVehiclePage() {
       const result = await response.json()
 
       if (!result.success) {
-        alert(result.error || '차량 정보 수정에 실패했습니다.')
+        toast.error(result.error || '차량 정보 수정에 실패했습니다.')
         return
       }
 
@@ -249,7 +251,7 @@ export default function EditBranchVehiclePage() {
           const insuranceResult = await insuranceResponse.json()
           if (!insuranceResult.success) {
             console.error('Insurance update failed:', insuranceResult.error)
-            alert('차량 정보는 수정되었으나 보험 정보 수정에 실패했습니다.')
+            toast.error('차량 정보는 수정되었으나 보험 정보 수정에 실패했습니다.')
           }
         } else {
           // 새 보험 등록
@@ -261,15 +263,15 @@ export default function EditBranchVehiclePage() {
           const insuranceResult = await insuranceResponse.json()
           if (!insuranceResult.success) {
             console.error('Insurance creation failed:', insuranceResult.error)
-            alert('차량 정보는 수정되었으나 보험 정보 등록에 실패했습니다.')
+            toast.error('차량 정보는 수정되었으나 보험 정보 등록에 실패했습니다.')
           }
         }
       }
 
-      alert('차량 정보가 수정되었습니다.')
+      toast.success('차량 정보가 수정되었습니다.')
       router.push(`/branch/${subdomain}/admin/vehicles`)
     } catch (error) {
-      alert('수정 중 오류가 발생했습니다.')
+      toast.error('수정 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

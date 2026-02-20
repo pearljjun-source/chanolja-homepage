@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleInsurance {
@@ -73,6 +74,7 @@ const getInsuranceStatus = (insurance?: VehicleInsurance[]) => {
 }
 
 export default function BranchVehiclesPage() {
+  const toast = useToast()
   const params = useParams()
   const subdomain = params.subdomain as string
 
@@ -151,12 +153,12 @@ export default function BranchVehiclesPage() {
 
       if (result.success) {
         setVehicles(vehicles.filter(v => v.id !== id))
-        alert('차량이 삭제되었습니다.')
+        toast.success('차량이 삭제되었습니다.')
       } else {
-        alert(result.error || '삭제에 실패했습니다.')
+        toast.error(result.error || '삭제에 실패했습니다.')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다.')
+      toast.error('삭제 중 오류가 발생했습니다.')
     }
     setActiveMenu(null)
   }

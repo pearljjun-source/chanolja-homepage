@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Save, Car, Upload, X, Plus, Shield, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch } from '@/types/database'
 
 interface VehicleForm {
@@ -71,6 +72,7 @@ const transmissionTypes = [
 ]
 
 export default function NewBranchVehiclePage() {
+  const toast = useToast()
   const router = useRouter()
   const params = useParams()
   const subdomain = params.subdomain as string
@@ -157,17 +159,17 @@ export default function NewBranchVehiclePage() {
     e.preventDefault()
 
     if (!branch) {
-      alert('지점 정보를 찾을 수 없습니다.')
+      toast.error('지점 정보를 찾을 수 없습니다.')
       return
     }
 
     if (!form.name || !form.brand) {
-      alert('차량명과 브랜드는 필수입니다.')
+      toast.warning('차량명과 브랜드는 필수입니다.')
       return
     }
 
     if (includeInsurance && !insuranceForm.insurance_company) {
-      alert('보험사를 선택해주세요.')
+      toast.warning('보험사를 선택해주세요.')
       return
     }
 
@@ -239,19 +241,19 @@ export default function NewBranchVehiclePage() {
         const insuranceResult = await insuranceResponse.json()
         if (!insuranceResult.success) {
           console.error('Insurance registration failed:', insuranceResult.error)
-          alert('차량은 등록되었으나 보험 정보 등록에 실패했습니다.')
+          toast.error('차량은 등록되었으나 보험 정보 등록에 실패했습니다.')
         }
       }
 
       if (result.success) {
-        alert('차량이 등록되었습니다.')
+        toast.success('차량이 등록되었습니다.')
         router.push(`/branch/${subdomain}/admin/vehicles`)
       } else {
-        alert(result.error || '차량 등록에 실패했습니다.')
+        toast.error(result.error || '차량 등록에 실패했습니다.')
       }
     } catch (error: any) {
       console.error('Vehicle registration error:', error)
-      alert(`차량 등록 중 오류가 발생했습니다: ${error?.message || error}`)
+      toast.error(`차량 등록 중 오류가 발생했습니다: ${error?.message || error}`)
     } finally {
       setSaving(false)
     }
@@ -283,12 +285,12 @@ export default function NewBranchVehiclePage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
-      alert('파일을 선택해주세요.')
+      toast.warning('파일을 선택해주세요.')
       return
     }
 
     if (!branch) {
-      alert('지점 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요.')
+      toast.error('지점 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요.')
       return
     }
 
@@ -296,7 +298,7 @@ export default function NewBranchVehiclePage() {
     const remainingSlots = 10 - form.images.length
 
     if (files.length > remainingSlots) {
-      alert(`최대 10장까지 업로드 가능합니다. 현재 ${form.images.length}장이 등록되어 있어 ${remainingSlots}장만 추가할 수 있습니다.`)
+      toast.warning(`최대 10장까지 업로드 가능합니다. 현재 ${form.images.length}장이 등록되어 있어 ${remainingSlots}장만 추가할 수 있습니다.`)
       return
     }
 
@@ -320,7 +322,7 @@ export default function NewBranchVehiclePage() {
 
         if (uploadError) {
           console.error('Upload error:', uploadError)
-          alert(`이미지 업로드 실패: ${uploadError.message}`)
+          toast.error(`이미지 업로드 실패: ${uploadError.message}`)
           continue
         }
 
@@ -341,7 +343,7 @@ export default function NewBranchVehiclePage() {
       }
     } catch (error: any) {
       console.error('Error uploading image:', error)
-      alert(`이미지 업로드 중 오류: ${error?.message || error}`)
+      toast.error(`이미지 업로드 중 오류: ${error?.message || error}`)
     } finally {
       setUploading(false)
       if (fileInputRef.current) {

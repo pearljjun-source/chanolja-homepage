@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Save, Upload, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 
 const categories = [
   { value: 'news', label: '뉴스' },
@@ -15,6 +16,7 @@ const categories = [
 ]
 
 export default function NewNewsPage() {
+  const toast = useToast()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -100,7 +102,7 @@ export default function NewNewsPage() {
       router.push('/admin/news')
     } catch (error) {
       console.error('Error creating news:', error)
-      alert('뉴스 작성 중 오류가 발생했습니다.')
+      toast.error('뉴스 작성 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
       setUploadingImage(false)
