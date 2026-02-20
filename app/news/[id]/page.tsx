@@ -61,9 +61,18 @@ export async function generateMetadata({
     }
   }
 
+  const description = news.content.replace(/<[^>]*>/g, '').substring(0, 160)
+
   return {
     title: news.title,
-    description: news.content.replace(/<[^>]*>/g, '').substring(0, 160),
+    description,
+    openGraph: {
+      title: news.title,
+      description,
+      ...(news.thumbnail_url && {
+        images: [{ url: news.thumbnail_url, alt: news.title }],
+      }),
+    },
   }
 }
 

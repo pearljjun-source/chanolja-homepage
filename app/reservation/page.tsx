@@ -24,6 +24,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle } from '@/types/database'
 
 const fuelTypeLabels: Record<string, string> = {
@@ -46,6 +47,7 @@ const vehicleTypeLabels: Record<string, string> = {
 function ReservationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const toast = useToast()
 
   const initialBranchId = searchParams.get('branch_id') || ''
   const initialVehicleId = searchParams.get('vehicle_id') || ''
@@ -158,15 +160,15 @@ function ReservationContent() {
   const handleSubmit = async () => {
     if (!selectedBranch || !selectedVehicle) return
     if (!formData.customer_name || !formData.customer_phone) {
-      alert('이름과 연락처를 입력해주세요.')
+      toast.warning('이름과 연락처를 입력해주세요.')
       return
     }
     if (!formData.start_date || !formData.end_date) {
-      alert('대여 기간을 선택해주세요.')
+      toast.warning('대여 기간을 선택해주세요.')
       return
     }
     if (totalDays <= 0) {
-      alert('올바른 대여 기간을 선택해주세요.')
+      toast.warning('올바른 대여 기간을 선택해주세요.')
       return
     }
 
@@ -195,10 +197,10 @@ function ReservationContent() {
       if (result.success) {
         setStep(3)
       } else {
-        alert(result.error || '예약 접수에 실패했습니다.')
+        toast.error(result.error || '예약 접수에 실패했습니다.')
       }
     } catch (error) {
-      alert('예약 중 오류가 발생했습니다.')
+      toast.error('예약 중 오류가 발생했습니다.')
     } finally {
       setSubmitting(false)
     }

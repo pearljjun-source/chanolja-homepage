@@ -20,6 +20,7 @@ import {
   Star
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/Toast'
 import type { Branch, Vehicle } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -70,6 +71,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export default function ReservationSection() {
+  const toast = useToast()
   const [location, setLocation] = useState('')
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
@@ -110,7 +112,7 @@ export default function ReservationSection() {
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('브라우저가 위치 서비스를 지원하지 않습니다.')
+      toast.warning('브라우저가 위치 서비스를 지원하지 않습니다.')
       return
     }
 
@@ -125,7 +127,7 @@ export default function ReservationSection() {
       },
       (error) => {
         console.error('위치 오류:', error)
-        alert('위치를 가져올 수 없습니다. 위치를 직접 입력해주세요.')
+        toast.warning('위치를 가져올 수 없습니다.', '위치를 직접 입력해주세요.')
         setIsLocating(false)
       }
     )
@@ -150,7 +152,7 @@ export default function ReservationSection() {
 
   const handleLocationSearch = async () => {
     if (!location.trim()) {
-      alert('위치를 입력해주세요.')
+      toast.info('위치를 입력해주세요.')
       return
     }
 

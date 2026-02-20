@@ -72,6 +72,7 @@ export default function FAQSection() {
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full flex items-center justify-between p-6 text-left"
+                aria-expanded={openIndex === index}
               >
                 <span className="font-semibold text-dark pr-4">{faq.question}</span>
                 <ChevronDown

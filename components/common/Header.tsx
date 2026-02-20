@@ -91,6 +91,7 @@ export default function Header() {
               <a
                 href="tel:041-522-7000"
                 className="p-2 bg-primary text-white rounded-full"
+                aria-label="전화 041-522-7000"
               >
                 <PhoneCall className="w-5 h-5" />
               </a>

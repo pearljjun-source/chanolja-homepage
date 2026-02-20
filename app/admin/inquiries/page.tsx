@@ -113,6 +113,7 @@ export default function AdminInquiriesPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  aria-label="문의 검색"
                 />
               </div>
             </div>
@@ -175,6 +176,7 @@ export default function AdminInquiriesPage() {
                       onClick={() => markAsRead(selectedInquiry)}
                       className="p-2 text-gray-400 hover:text-primary transition-colors"
                       title="읽음 표시"
+                      aria-label="읽음 표시"
                     >
                       <Eye className="w-5 h-5" />
                     </button>
@@ -182,6 +184,7 @@ export default function AdminInquiriesPage() {
                       onClick={() => deleteInquiry(selectedInquiry.id)}
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                       title="삭제"
+                      aria-label="삭제"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

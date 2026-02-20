@@ -30,11 +30,12 @@ export default function BranchesMap() {
       try {
         const supabase = createClient()
 
-        // 지점 조회
+        // 지점 + 차량 수를 단일 쿼리로 조회
         const { data: branchesData, error } = await supabase
           .from('branches')
-          .select('*')
+          .select('id, name, region, address, phone, branch_type, is_active, lat, lng, subdomain, vehicles(count)')
           .eq('is_active', true)
+          .eq('vehicles.is_active', true)
           .order('region', { ascending: true })
 
         if (error) {
@@ -42,22 +43,9 @@ export default function BranchesMap() {
         }
 
         if (branchesData) {
-          // 각 지점의 차량 수 조회
-          const { data: vehicleCounts } = await supabase
-            .from('vehicles')
-            .select('branch_id')
-            .eq('is_active', true)
-
-          // 지점별 차량 수 계산
-          const countMap: Record<string, number> = {}
-          vehicleCounts?.forEach(v => {
-            countMap[v.branch_id] = (countMap[v.branch_id] || 0) + 1
-          })
-
-          // 지점 데이터에 차량 수 추가
           const branchesWithCount = branchesData.map(b => ({
             ...b,
-            vehicle_count: countMap[b.id] || 0
+            vehicle_count: (b.vehicles as unknown as { count: number }[])?.[0]?.count || 0,
           }))
 
           setBranches(branchesWithCount)
