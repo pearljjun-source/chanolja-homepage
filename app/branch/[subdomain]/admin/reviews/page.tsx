@@ -93,8 +93,6 @@ export default function BranchAdminReviewsPage() {
         throw error
       }
 
-      console.log('Approve result:', data)
-
       setReviews(prev =>
         prev.map(r => (r.id === reviewId ? { ...r, is_approved: true, is_visible: true } : r))
       )

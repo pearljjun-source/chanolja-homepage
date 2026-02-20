@@ -19,15 +19,10 @@ export default function ForgotPasswordPage() {
 
     try {
       const supabase = createClient()
-      console.log('Attempting to send reset email to:', email)
-      console.log('Redirect URL:', 'https://chanolja-homepage.vercel.app/reset-password')
 
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://chanolja-homepage.vercel.app/reset-password',
       })
-
-      console.log('Supabase response - data:', data)
-      console.log('Supabase response - error:', error)
 
       if (error) {
         console.error('Supabase error details:', error.message, error.status, error.name)

@@ -54,16 +54,12 @@ export default function BranchAboutPage() {
 
       // 지점 이미지 로드
       if (branchData) {
-        console.log('Loading images for branch:', branchData.id)
-
         const { data: imageFiles, error: listError } = await supabase.storage
           .from('branch-images')
           .list(branchData.id, {
             limit: 100,
             sortBy: { column: 'created_at', order: 'desc' }
           })
-
-        console.log('Image files:', imageFiles, 'Error:', listError)
 
         if (imageFiles && imageFiles.length > 0) {
           // Filter out placeholder files and subfolders (like 'vehicles')
@@ -73,8 +69,6 @@ export default function BranchAboutPage() {
             file.id // folders don't have an id, only files do
           )
 
-          console.log('Valid image files:', validFiles)
-
           if (validFiles.length > 0) {
             const imageUrls = validFiles.map(file => {
               const { data: urlData } = supabase.storage
@@ -82,7 +76,6 @@ export default function BranchAboutPage() {
                 .getPublicUrl(`${branchData.id}/${file.name}`)
               return urlData.publicUrl
             })
-            console.log('Image URLs:', imageUrls)
             setBranchImages(imageUrls)
           }
         }

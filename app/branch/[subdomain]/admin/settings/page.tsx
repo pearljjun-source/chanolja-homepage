@@ -148,8 +148,6 @@ export default function BranchSettingsPage() {
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
         const filePath = `${branch.id}/${fileName}`
 
-        console.log('Uploading:', filePath)
-
         const { error: uploadError } = await supabase.storage
           .from('branch-images')
           .upload(filePath, file, {
@@ -167,7 +165,6 @@ export default function BranchSettingsPage() {
           .from('branch-images')
           .getPublicUrl(filePath)
 
-        console.log('Upload success:', urlData.publicUrl)
         uploadedUrls.push(urlData.publicUrl)
       }
 
