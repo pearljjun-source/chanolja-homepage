@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Plus, Search, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { News } from '@/types/database'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 
 const categoryLabels: Record<string, string> = {
   news: '뉴스',
@@ -14,6 +15,7 @@ const categoryLabels: Record<string, string> = {
 }
 
 export default function AdminNewsPage() {
+  const confirm = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const [news, setNews] = useState<News[]>([])
   const [loading, setLoading] = useState(true)
@@ -52,7 +54,7 @@ export default function AdminNewsPage() {
   }
 
   const deleteNews = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 삭제하시겠습니까?', variant: 'danger' })) return
 
     const supabase = createClient()
     const { error } = await supabase

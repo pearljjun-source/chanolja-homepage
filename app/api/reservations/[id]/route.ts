@@ -121,8 +121,9 @@ export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextReques
         .single()
 
       if (error) {
+        console.error('Reservation action error:', error.message)
         return NextResponse.json(
-          { success: false, error: error.message },
+          { success: false, error: '예약 상태 변경에 실패했습니다.' },
           { status: 500 }
         )
       }
@@ -167,8 +168,9 @@ export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextReques
       .single()
 
     if (error) {
+      console.error('Reservation update error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '예약 정보 수정에 실패했습니다.' },
         { status: 500 }
       )
     }
@@ -202,8 +204,9 @@ export const DELETE = withAuth({ auth: 'admin' }, async (request: NextRequest, {
       .eq('id', id)
 
     if (error) {
+      console.error('Reservation cancel error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '예약 취소에 실패했습니다.' },
         { status: 500 }
       )
     }

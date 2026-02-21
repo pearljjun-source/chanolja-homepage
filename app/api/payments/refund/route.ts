@@ -159,7 +159,7 @@ export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, a
     return NextResponse.json({
       success: true,
       data: {
-        refund: tossData,
+        refundStatus: tossData?.status,
         refundAmount: actualRefundAmount,
       },
       message: `${actualRefundAmount.toLocaleString()}원이 환불되었습니다.`

@@ -105,7 +105,8 @@ export async function checkRateLimit(
     }
   } catch (error) {
     // KV 연결 실패 시 기본적으로 통과 (서비스 가용성 우선)
-    console.error('Rate limit check failed:', error)
+    // 주의: Redis 장애 시 rate limit이 우회됨 - 모니터링 필요
+    console.error('Rate limit check failed (BYPASS):', error)
     return {
       success: true,
       limit: config.maxRequests,

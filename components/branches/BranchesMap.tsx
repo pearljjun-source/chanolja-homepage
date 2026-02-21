@@ -4,6 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { MapPin, Building2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+/** HTML 특수문자 이스케이프 (XSS 방지) */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 interface Branch {
   id: string
   name: string
@@ -108,9 +118,9 @@ export default function BranchesMap() {
           const branchUrl = `/branch/${encodeURIComponent(branch.subdomain || branch.name)}`
           const infoContent = `
             <div style="padding: 12px; min-width: 200px; font-family: sans-serif;">
-              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1f2937;">${branch.name}</h3>
-              ${branch.address ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #6b7280;">${branch.address}</p>` : ''}
-              ${branch.phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">📞 ${branch.phone}</p>` : ''}
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1f2937;">${escapeHtml(branch.name)}</h3>
+              ${branch.address ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #6b7280;">${escapeHtml(branch.address)}</p>` : ''}
+              ${branch.phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">📞 ${escapeHtml(branch.phone)}</p>` : ''}
               <a href="${branchUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 6px 12px; background: #F97316; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">지점 홈페이지 →</a>
             </div>
           `

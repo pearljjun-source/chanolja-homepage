@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Search, Mail, MailOpen, Trash2, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Inquiry } from '@/types/database'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 
 const typeLabels: Record<string, string> = {
   branch: '지점 개설',
@@ -13,6 +14,7 @@ const typeLabels: Record<string, string> = {
 }
 
 export default function AdminInquiriesPage() {
+  const confirm = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
@@ -57,7 +59,7 @@ export default function AdminInquiriesPage() {
   }
 
   const deleteInquiry = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 삭제하시겠습니까?', variant: 'danger' })) return
 
     const supabase = createClient()
     const { error } = await supabase

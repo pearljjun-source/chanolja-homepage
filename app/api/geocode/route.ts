@@ -22,14 +22,14 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'default' }, async (re
     const { address } = await request.json()
 
     if (!address) {
-      return NextResponse.json({ error: '주소가 필요합니다' }, { status: 400 })
+      return NextResponse.json({ success: false, error: '주소가 필요합니다' }, { status: 400 })
     }
 
     const kakaoApiKey = process.env.KAKAO_REST_API_KEY
 
     if (!kakaoApiKey) {
       return NextResponse.json(
-        { error: '카카오 API 키가 설정되지 않았습니다' },
+        { success: false, error: '카카오 API 키가 설정되지 않았습니다' },
         { status: 500 }
       )
     }
@@ -79,16 +79,16 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'default' }, async (re
     if (data.documents && data.documents.length > 0) {
       const { x, y } = data.documents[0]
       return NextResponse.json({
-        lat: parseFloat(y),
-        lng: parseFloat(x),
+        success: true,
+        data: { lat: parseFloat(y), lng: parseFloat(x) },
       })
     }
 
-    return NextResponse.json({ lat: null, lng: null })
+    return NextResponse.json({ success: true, data: { lat: null, lng: null } })
   } catch (error) {
     console.error('Geocoding error:', error)
     return NextResponse.json(
-      { error: '좌표 변환 중 오류가 발생했습니다' },
+      { success: false, error: '좌표 변환 중 오류가 발생했습니다' },
       { status: 500 }
     )
   }

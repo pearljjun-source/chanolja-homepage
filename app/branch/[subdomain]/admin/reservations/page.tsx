@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Vehicle, Reservation, ReservationStatus } from '@/types/database'
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
@@ -35,6 +36,7 @@ const paymentStatusConfig: Record<string, { label: string; color: string }> = {
 
 export default function BranchReservationsPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const params = useParams()
   const searchParams = useSearchParams()
   const subdomain = params.subdomain as string
@@ -352,9 +354,9 @@ export default function BranchReservationsPage() {
                             {updating === reservation.id ? '처리중...' : '예약 확정'}
                           </button>
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation()
-                              if (confirm('정말 이 예약을 취소하시겠습니까?')) {
+                              if (await confirm({ title: '정말 이 예약을 취소하시겠습니까?', variant: 'danger' })) {
                                 handleStatusChange(reservation.id, 'cancelled')
                               }
                             }}
@@ -378,9 +380,9 @@ export default function BranchReservationsPage() {
                             {updating === reservation.id ? '처리중...' : '대여 완료'}
                           </button>
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation()
-                              if (confirm('정말 이 예약을 취소하시겠습니까?')) {
+                              if (await confirm({ title: '정말 이 예약을 취소하시겠습니까?', variant: 'danger' })) {
                                 handleStatusChange(reservation.id, 'cancelled')
                               }
                             }}

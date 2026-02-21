@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
       const supabase = createClient()
 
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://chanolja-homepage.vercel.app/reset-password',
+        redirectTo: `${process.env.NEXT_PUBLIC_URL || 'https://chanolja-homepage.vercel.app'}/reset-password`,
       })
 
       if (error) {

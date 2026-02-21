@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { VehicleInsurance, Branch, Vehicle } from '@/types/database'
 
 const insuranceTypeLabels: Record<string, string> = {
@@ -25,6 +26,7 @@ const insuranceTypeLabels: Record<string, string> = {
 
 export default function AdminInsurancesPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const [insurances, setInsurances] = useState<VehicleInsurance[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,7 +96,7 @@ export default function AdminInsurancesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('정말 이 보험 정보를 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 이 보험 정보를 삭제하시겠습니까?', variant: 'danger' })) return
 
     try {
       const response = await fetch(`/api/insurances/${id}`, {

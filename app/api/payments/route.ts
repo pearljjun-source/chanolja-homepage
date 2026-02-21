@@ -61,8 +61,9 @@ export const GET = withAuth({ auth: 'admin', permission: 'manage_payments' }, as
     const { data, error, count } = await query
 
     if (error) {
+      console.error('Payment query error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '결제 목록 조회에 실패했습니다.' },
         { status: 500 }
       )
     }
@@ -129,8 +130,9 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       .single()
 
     if (error) {
+      console.error('Payment insert error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '결제 생성에 실패했습니다.' },
         { status: 500 }
       )
     }

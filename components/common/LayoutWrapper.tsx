@@ -5,6 +5,7 @@ import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
 import FloatingKakaoChat from '@/components/common/FloatingKakaoChat'
 import { ToastProvider } from '@/components/ui/Toast'
+import { ConfirmProvider } from '@/components/ui/ConfirmModal'
 
 export default function LayoutWrapper({
   children,
@@ -22,19 +23,21 @@ export default function LayoutWrapper({
 
   // 지점 홈페이지는 완전히 독립적으로 렌더링
   if (isBranchSitePage) {
-    return <ToastProvider>{children}</ToastProvider>
+    return <ToastProvider><ConfirmProvider>{children}</ConfirmProvider></ToastProvider>
   }
 
   return (
     <ToastProvider>
-      <div className="pb-20 lg:pb-0">
-        {!hideHeaderFooter && <Header />}
-        <main className="min-h-screen">
-          {children}
-        </main>
-        {!hideHeaderFooter && <Footer />}
-        {!hideHeaderFooter && <FloatingKakaoChat />}
-      </div>
+      <ConfirmProvider>
+        <div className="pb-20 lg:pb-0">
+          {!hideHeaderFooter && <Header />}
+          <main className="min-h-screen">
+            {children}
+          </main>
+          {!hideHeaderFooter && <Footer />}
+          {!hideHeaderFooter && <FloatingKakaoChat />}
+        </div>
+      </ConfirmProvider>
     </ToastProvider>
   )
 }

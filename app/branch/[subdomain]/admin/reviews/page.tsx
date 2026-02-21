@@ -15,10 +15,12 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Review } from '@/types/database'
 
 export default function BranchAdminReviewsPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const params = useParams()
   const subdomain = params.subdomain as string
   const decodedSubdomain = decodeURIComponent(subdomain)
@@ -105,7 +107,7 @@ export default function BranchAdminReviewsPage() {
   }
 
   const handleReject = async (reviewId: string) => {
-    if (!confirm('이 후기를 거절(삭제)하시겠습니까?')) return
+    if (!await confirm({ title: '이 후기를 거절(삭제)하시겠습니까?', variant: 'danger' })) return
 
     try {
       const supabase = createClient()

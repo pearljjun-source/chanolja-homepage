@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Plus, Search, Edit, Trash2, MapPin, Phone, FileSpreadsheet, X, User, Globe, ExternalLink, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 
 // Dynamic import for xlsx to reduce initial bundle size
 const loadXLSX = () => import('xlsx')
@@ -72,6 +73,7 @@ function extractRegion(address: string): string {
 
 export default function AdminBranchesPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -192,9 +194,10 @@ export default function AdminBranchesPage() {
       const supabase = createClient()
 
       // 기존 지점 삭제 여부 확인
-      const confirmDelete = confirm(
-        `${uploadData.length}개의 지점을 등록합니다.\n기존 지점 데이터를 모두 삭제하고 새로 등록할까요?\n\n[확인] - 기존 데이터 삭제 후 새로 등록\n[취소] - 기존 데이터 유지하고 추가만`
-      )
+      const confirmDelete = await confirm({
+        title: `${uploadData.length}개의 지점을 등록합니다.\n기존 지점 데이터를 모두 삭제하고 새로 등록할까요?\n\n[확인] - 기존 데이터 삭제 후 새로 등록\n[취소] - 기존 데이터 유지하고 추가만`,
+        variant: 'danger',
+      })
 
       if (confirmDelete) {
         // 기존 데이터 삭제
@@ -244,7 +247,7 @@ export default function AdminBranchesPage() {
   }
 
   const deleteBranch = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 삭제하시겠습니까?', variant: 'danger' })) return
 
     const supabase = createClient()
     const { error } = await supabase
@@ -412,7 +415,8 @@ export default function AdminBranchesPage() {
         body: JSON.stringify({ address }),
       })
       if (response.ok) {
-        return await response.json()
+        const result = await response.json()
+        if (result.success) return result.data
       }
     } catch (error) {
       console.error('Geocoding error:', error)
@@ -431,7 +435,7 @@ export default function AdminBranchesPage() {
       return
     }
 
-    if (!confirm(`${branchesWithoutCoords.length}개 지점의 좌표를 업데이트하시겠습니까?`)) {
+    if (!await confirm({ title: `${branchesWithoutCoords.length}개 지점의 좌표를 업데이트하시겠습니까?`, variant: 'info' })) {
       return
     }
 

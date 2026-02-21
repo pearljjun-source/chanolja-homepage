@@ -161,7 +161,8 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       data: {
         paymentId: txResult?.payment_id || paymentRecord.id,
         reservationId: txResult?.reservation_id || paymentRecord.reservation_id,
-        toss: tossData,
+        tossStatus: tossData?.status,
+        tossReceiptUrl: tossData?.receipt?.url,
         splitInfo: {
           branchSubMallId,
           branchAmount: txResult?.branch_settlement_amount || paymentRecord.branch_settlement_amount,

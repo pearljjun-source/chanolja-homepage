@@ -46,8 +46,9 @@ export const GET = withAuth({ auth: 'branch_admin' }, async (request: NextReques
     const { data, error, count } = await query
 
     if (error) {
+      console.error('Insurance query error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '보험 목록 조회에 실패했습니다.' },
         { status: 500 }
       )
     }
@@ -132,8 +133,9 @@ export const POST = withAuth({ auth: 'branch_admin', branchScoped: true }, async
       .single()
 
     if (error) {
+      console.error('Insurance insert error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '보험 등록에 실패했습니다.' },
         { status: 500 }
       )
     }

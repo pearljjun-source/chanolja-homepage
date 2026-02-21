@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { ArrowLeft, Save, Car, Edit, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Vehicle, Branch } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -40,6 +41,7 @@ const transmissionLabels: Record<string, string> = {
 
 export default function VehicleDetailPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const params = useParams()
   const id = params.id as string
   const router = useRouter()
@@ -69,7 +71,7 @@ export default function VehicleDetailPage() {
   }
 
   const handleDelete = async () => {
-    if (!confirm('정말 이 차량을 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 이 차량을 삭제하시겠습니까?', variant: 'danger' })) return
 
     try {
       const response = await fetch(`/api/vehicles/${id}`, {

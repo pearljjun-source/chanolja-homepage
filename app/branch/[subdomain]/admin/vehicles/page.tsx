@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleInsurance {
@@ -75,6 +76,7 @@ const getInsuranceStatus = (insurance?: VehicleInsurance[]) => {
 
 export default function BranchVehiclesPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const params = useParams()
   const subdomain = params.subdomain as string
 
@@ -143,7 +145,7 @@ export default function BranchVehiclesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('정말 이 차량을 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 이 차량을 삭제하시겠습니까?', variant: 'danger' })) return
 
     try {
       const response = await fetch(`/api/vehicles/${id}`, {

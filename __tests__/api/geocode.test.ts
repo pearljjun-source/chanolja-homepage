@@ -22,6 +22,9 @@ describe('Geocode API', () => {
 
   describe('POST /api/geocode', () => {
     it('should return coordinates for valid address', async () => {
+      // Rate limit's Redis call consumes one fetch mock
+      mockFetch.mockResolvedValueOnce({})
+      // Geocode API call
       mockFetch.mockResolvedValueOnce({
         json: () => Promise.resolve({
           documents: [{ x: '127.0276', y: '37.4979' }],
@@ -38,8 +41,9 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
-      expect(json.lat).toBe(37.4979)
-      expect(json.lng).toBe(127.0276)
+      expect(json.success).toBe(true)
+      expect(json.data.lat).toBe(37.4979)
+      expect(json.data.lng).toBe(127.0276)
     })
 
     it('should return error when address is missing', async () => {
@@ -53,6 +57,7 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
+      expect(json.success).toBe(false)
       expect(json.error).toBe('주소가 필요합니다')
       expect(response.status).toBe(400)
     })
@@ -71,11 +76,14 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
+      expect(json.success).toBe(false)
       expect(json.error).toBe('카카오 API 키가 설정되지 않았습니다')
       expect(response.status).toBe(500)
     })
 
     it('should try normalized address when original fails', async () => {
+      // Rate limit's Redis call consumes one fetch mock
+      mockFetch.mockResolvedValueOnce({})
       // First call with original address returns empty
       mockFetch.mockResolvedValueOnce({
         json: () => Promise.resolve({ documents: [] }),
@@ -101,8 +109,9 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
-      expect(json.lat).toBe(37.5)
-      expect(json.lng).toBe(127.0)
+      expect(json.success).toBe(true)
+      expect(json.data.lat).toBe(37.5)
+      expect(json.data.lng).toBe(127.0)
     })
 
     it('should return null coordinates when no results found at all', async () => {
@@ -125,8 +134,9 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
-      expect(json.lat).toBeNull()
-      expect(json.lng).toBeNull()
+      expect(json.success).toBe(true)
+      expect(json.data.lat).toBeNull()
+      expect(json.data.lng).toBeNull()
     })
 
     it('should handle fetch errors gracefully', async () => {
@@ -146,6 +156,7 @@ describe('Geocode API', () => {
       const response = await POST(request as any)
       const json = await response.json()
 
+      expect(json.success).toBe(false)
       expect(json.error).toBe('좌표 변환 중 오류가 발생했습니다')
       expect(response.status).toBe(500)
     })

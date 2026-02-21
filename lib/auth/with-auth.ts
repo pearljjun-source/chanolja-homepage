@@ -73,7 +73,9 @@ export function withAuth(config: AuthConfig, handler: AuthenticatedHandler) {
 
       // 4. 지점 범위 검사
       if (config.branchScoped && authResult.user) {
+        const method = request.method.toUpperCase()
         const branchId = extractBranchId(request)
+          || (['POST', 'PUT', 'PATCH'].includes(method) ? await extractBranchIdFromBody(request) : null)
         if (branchId) {
           const branchCheck = await checkAuth({
             requiredRole: requiredRole ?? undefined,
@@ -97,8 +99,19 @@ export function withAuth(config: AuthConfig, handler: AuthenticatedHandler) {
   }
 }
 
-/** 요청에서 branch_id 추출 (쿼리 파라미터 또는 바디) */
+/** 요청에서 branch_id 추출 (쿼리 파라미터) */
 function extractBranchId(request: NextRequest): string | null {
   const url = new URL(request.url)
   return url.searchParams.get('branch_id')
+}
+
+/** 요청 바디에서 branch_id 추출 (POST/PUT용) */
+async function extractBranchIdFromBody(request: NextRequest): Promise<string | null> {
+  try {
+    const cloned = request.clone()
+    const body = await cloned.json()
+    return body?.branch_id || null
+  } catch {
+    return null
+  }
 }

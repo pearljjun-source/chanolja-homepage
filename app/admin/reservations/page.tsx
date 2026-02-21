@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Reservation, Branch, Vehicle } from '@/types/database'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -36,6 +37,7 @@ const paymentStatusLabels: Record<string, { label: string; color: string }> = {
 
 export default function AdminReservationsPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -110,8 +112,8 @@ export default function AdminReservationsPage() {
     }
   }
 
-  const handleApprove = (id: string) => {
-    if (confirm('이 예약을 승인하시겠습니까?')) {
+  const handleApprove = async (id: string) => {
+    if (await confirm({ title: '이 예약을 승인하시겠습니까?', variant: 'info' })) {
       handleStatusChange(id, 'approve')
     }
   }
@@ -123,8 +125,8 @@ export default function AdminReservationsPage() {
     }
   }
 
-  const handleComplete = (id: string) => {
-    if (confirm('이 예약을 완료 처리하시겠습니까?')) {
+  const handleComplete = async (id: string) => {
+    if (await confirm({ title: '이 예약을 완료 처리하시겠습니까?', variant: 'warning' })) {
       handleStatusChange(id, 'complete')
     }
   }

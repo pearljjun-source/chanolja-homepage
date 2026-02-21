@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Vehicle, Branch } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -36,6 +37,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 
 export default function AdminVehiclesPage() {
   const toast = useToast()
+  const confirm = useConfirm()
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
@@ -91,7 +93,7 @@ export default function AdminVehiclesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('정말 이 차량을 삭제하시겠습니까?')) return
+    if (!await confirm({ title: '정말 이 차량을 삭제하시겠습니까?', variant: 'danger' })) return
 
     try {
       const response = await fetch(`/api/vehicles/${id}`, {

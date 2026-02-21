@@ -55,8 +55,9 @@ export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { us
     const { data, error, count } = await query
 
     if (error) {
+      console.error('Reservation query error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '예약 목록 조회에 실패했습니다.' },
         { status: 500 }
       )
     }
@@ -168,8 +169,9 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async
       .single()
 
     if (error) {
+      console.error('Reservation insert error:', error.message)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: '예약 생성에 실패했습니다.' },
         { status: 500 }
       )
     }
