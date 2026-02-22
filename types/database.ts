@@ -208,6 +208,7 @@ export interface Reservation {
   customer_birth: string | null
   license_number: string | null
   license_type: LicenseType | null
+  user_id: string | null
 
   // 예약 기간
   start_date: string

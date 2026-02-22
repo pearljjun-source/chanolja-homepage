@@ -6,6 +6,7 @@
 const mockSelect = jest.fn()
 const mockInsert = jest.fn()
 const mockEq = jest.fn()
+const mockIn = jest.fn()
 const mockSingle = jest.fn()
 const mockFrom = jest.fn()
 
@@ -13,6 +14,14 @@ jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => Promise.resolve({
     from: mockFrom,
   })),
+}))
+
+jest.mock('@/lib/auth/rbac', () => ({
+  ...jest.requireActual('@/lib/auth/rbac'),
+  checkAuth: jest.fn().mockResolvedValue({
+    success: true,
+    user: { id: 'admin-user', email: 'admin@test.com', role: 'admin' },
+  }),
 }))
 
 // Mock calculateSplitAmountsAsync
@@ -49,6 +58,11 @@ describe('Payments Request API', () => {
     })
 
     mockEq.mockReturnValue({
+      single: mockSingle,
+      in: mockIn,
+    })
+
+    mockIn.mockReturnValue({
       single: mockSingle,
     })
   })
@@ -128,6 +142,7 @@ describe('Payments Request API', () => {
           id: 'test-reservation',
           payment_status: 'paid',
           total_price: 100000,
+          branch_id: 'branch-1',
           branch: { submall_id: 'branch-1', hq_submall_id: 'hq-1' },
         },
         error: null,
@@ -153,34 +168,40 @@ describe('Payments Request API', () => {
     })
 
     it('should create payment request for card payment', async () => {
-      // First call - reservation query
-      mockSingle.mockResolvedValueOnce({
-        data: {
-          id: 'test-reservation',
-          payment_status: 'pending',
-          total_price: 100000,
-          customer_name: '홍길동',
-          customer_phone: '01012345678',
-          customer_email: 'test@test.com',
-          start_date: '2024-01-15',
-          end_date: '2024-01-17',
-          branch_id: 'branch-1',
-          branch: {
-            id: 'branch-1',
-            name: '강남지점',
-            submall_id: 'branch-submall-1',
-            hq_submall_id: 'hq-submall-1',
+      // 1st call - reservation query
+      mockSingle
+        .mockResolvedValueOnce({
+          data: {
+            id: 'test-reservation',
+            payment_status: 'pending',
+            total_price: 100000,
+            customer_name: '홍길동',
+            customer_phone: '01012345678',
+            customer_email: 'test@test.com',
+            start_date: '2024-01-15',
+            end_date: '2024-01-17',
+            branch_id: 'branch-1',
+            branch: {
+              id: 'branch-1',
+              name: '강남지점',
+              submall_id: 'branch-submall-1',
+              hq_submall_id: 'hq-submall-1',
+            },
+            vehicle: {
+              name: 'K5',
+              brand: '기아',
+              model: 'K5',
+            },
           },
-          vehicle: {
-            name: 'K5',
-            brand: '기아',
-            model: 'K5',
-          },
-        },
-        error: null,
-      })
+          error: null,
+        })
+        // 2nd call - idempotency check (no existing payment)
+        .mockResolvedValueOnce({
+          data: null,
+          error: null,
+        })
 
-      // Second call - payment insert
+      // Payment insert
       mockInsert.mockReturnValue({
         select: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({
@@ -213,24 +234,30 @@ describe('Payments Request API', () => {
     })
 
     it('should include bank info for virtual account payment', async () => {
-      mockSingle.mockResolvedValueOnce({
-        data: {
-          id: 'test-reservation',
-          payment_status: 'pending',
-          total_price: 50000,
-          customer_name: '김철수',
-          customer_phone: '01098765432',
-          start_date: '2024-02-01',
-          end_date: '2024-02-03',
-          branch_id: 'branch-1',
-          branch: {
-            submall_id: 'branch-submall',
-            hq_submall_id: 'hq-submall',
+      mockSingle
+        .mockResolvedValueOnce({
+          data: {
+            id: 'test-reservation',
+            payment_status: 'pending',
+            total_price: 50000,
+            customer_name: '김철수',
+            customer_phone: '01098765432',
+            start_date: '2024-02-01',
+            end_date: '2024-02-03',
+            branch_id: 'branch-1',
+            branch: {
+              submall_id: 'branch-submall',
+              hq_submall_id: 'hq-submall',
+            },
+            vehicle: { name: '소나타' },
           },
-          vehicle: { name: '소나타' },
-        },
-        error: null,
-      })
+          error: null,
+        })
+        // Idempotency check (no existing payment)
+        .mockResolvedValueOnce({
+          data: null,
+          error: null,
+        })
 
       mockInsert.mockReturnValue({
         select: jest.fn().mockReturnValue({

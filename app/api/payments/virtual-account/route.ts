@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { BANK_CODES, BankCode } from '@/lib/payments/types'
 import { withAuth } from '@/lib/auth/with-auth'
+import { canAccessReservation } from '@/lib/auth/ownership'
 
 // POST: 토스페이먼츠 가상계좌 발급 (인증된 사용자)
-export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user }) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -31,6 +32,8 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       .select(`
         *,
         reservation:reservations(
+          user_id,
+          branch_id,
           customer_name,
           customer_phone,
           customer_email,
@@ -46,6 +49,20 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       return NextResponse.json(
         { success: false, error: '결제 정보를 찾을 수 없습니다.' },
         { status: 404 }
+      )
+    }
+
+    // 소유권 검증 (reservation join이 null이면 데이터 무결성 오류)
+    if (!paymentRecord.reservation) {
+      return NextResponse.json(
+        { success: false, error: '연결된 예약 정보를 찾을 수 없습니다.' },
+        { status: 400 }
+      )
+    }
+    if (!canAccessReservation(user!, paymentRecord.reservation)) {
+      return NextResponse.json(
+        { success: false, error: '해당 결제에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
       )
     }
 
@@ -173,7 +190,7 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
 })
 
 // GET: 가상계좌 정보 조회 (인증된 사용자)
-export const GET = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
+export const GET = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user }) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
@@ -188,7 +205,7 @@ export const GET = withAuth({ auth: 'authenticated' }, async (request: NextReque
 
     const { data: payment, error } = await supabase
       .from('payments')
-      .select('*')
+      .select('*, reservation:reservations(user_id, customer_email, branch_id)')
       .eq('id', paymentId)
       .single()
 
@@ -196,6 +213,20 @@ export const GET = withAuth({ auth: 'authenticated' }, async (request: NextReque
       return NextResponse.json(
         { success: false, error: '결제 정보를 찾을 수 없습니다.' },
         { status: 404 }
+      )
+    }
+
+    // 소유권 검증 (reservation join이 null이면 데이터 무결성 오류)
+    if (!payment.reservation) {
+      return NextResponse.json(
+        { success: false, error: '연결된 예약 정보를 찾을 수 없습니다.' },
+        { status: 400 }
+      )
+    }
+    if (!canAccessReservation(user!, payment.reservation)) {
+      return NextResponse.json(
+        { success: false, error: '해당 결제에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
       )
     }
 

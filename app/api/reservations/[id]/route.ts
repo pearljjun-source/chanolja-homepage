@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/auth/with-auth'
+import { canAccessReservation } from '@/lib/auth/ownership'
 
 // GET: 예약 상세 조회
 export const GET = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user, params }) => {
@@ -26,6 +27,14 @@ export const GET = withAuth({ auth: 'authenticated' }, async (request: NextReque
       )
     }
 
+    // 소유권 검증 (auth: 'authenticated'이므로 user는 항상 non-null)
+    if (!canAccessReservation(user!, data)) {
+      return NextResponse.json(
+        { success: false, error: '해당 예약에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       data
@@ -43,6 +52,28 @@ export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextReques
   try {
     const id = params?.id
     const supabase = await createClient()
+
+    // 소유권 검증: branch_admin/staff는 자기 지점만 수정 가능
+    const { data: targetReservation, error: targetError } = await supabase
+      .from('reservations')
+      .select('user_id, customer_email, branch_id')
+      .eq('id', id)
+      .single()
+
+    if (targetError || !targetReservation) {
+      return NextResponse.json(
+        { success: false, error: '예약을 찾을 수 없습니다.' },
+        { status: 404 }
+      )
+    }
+
+    if (!canAccessReservation(user!, targetReservation)) {
+      return NextResponse.json(
+        { success: false, error: '해당 예약에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
 
     // 상태 변경인 경우

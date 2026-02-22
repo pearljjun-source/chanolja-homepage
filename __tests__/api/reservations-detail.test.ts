@@ -5,6 +5,16 @@
 describe('Reservations Detail API', () => {
   let mockSupabase: any
 
+  // 소유권 검증 쿼리용 mock 헬퍼
+  const createOwnershipMock = () => ({
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({
+      data: { user_id: null, customer_email: null, branch_id: 'b-1' },
+      error: null,
+    }),
+  })
+
   beforeEach(() => {
     jest.resetModules()
     jest.clearAllMocks()
@@ -16,6 +26,15 @@ describe('Reservations Detail API', () => {
     jest.doMock('@/lib/supabase/server', () => ({
       createClient: jest.fn(() => Promise.resolve(mockSupabase)),
     }))
+
+    // 인증 레이어 mock: admin 사용자로 고정 (비즈니스 로직 테스트에 집중)
+    jest.doMock('@/lib/auth/rbac', () => ({
+      ...jest.requireActual('@/lib/auth/rbac'),
+      checkAuth: jest.fn().mockResolvedValue({
+        success: true,
+        user: { id: 'admin-user', email: 'admin@test.com', role: 'admin' },
+      }),
+    }))
   })
 
   describe('GET /api/reservations/[id]', () => {
@@ -25,6 +44,7 @@ describe('Reservations Detail API', () => {
         customer_name: '홍길동',
         customer_phone: '01012345678',
         status: 'confirmed',
+        branch_id: 'b-1',
         vehicle: { id: 'v-1', name: 'K5' },
         branch: { id: 'b-1', name: '강남지점' },
       }
@@ -78,15 +98,16 @@ describe('Reservations Detail API', () => {
   describe('PUT /api/reservations/[id]', () => {
     it('should approve reservation', async () => {
       const mockUpdateQuery = {
+        select: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: { id: 'res-1', status: 'approved' },
           error: null,
         }),
       }
 
+      // mockReturnValue → 소유권 검증과 업데이트 모두 같은 mock 사용
       mockSupabase.from.mockReturnValue(mockUpdateQuery)
 
       const { PUT } = await import('@/app/api/reservations/[id]/route')
@@ -105,9 +126,9 @@ describe('Reservations Detail API', () => {
 
     it('should confirm reservation', async () => {
       const mockUpdateQuery = {
+        select: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: { id: 'res-1', status: 'confirmed', payment_status: 'paid' },
           error: null,
@@ -130,7 +151,10 @@ describe('Reservations Detail API', () => {
     })
 
     it('should start rental (in_use)', async () => {
-      // First call - get reservation to get vehicle_id
+      // 1) 소유권 검증 쿼리
+      const mockOwnershipQuery = createOwnershipMock()
+
+      // 2) Get vehicle_id
       const mockSelectQuery = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
@@ -140,13 +164,13 @@ describe('Reservations Detail API', () => {
         }),
       }
 
-      // Second call - update vehicle status
+      // 3) Update vehicle status
       const mockVehicleUpdateQuery = {
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockResolvedValue({ error: null }),
       }
 
-      // Third call - update reservation status
+      // 4) Update reservation status
       const mockReservationUpdateQuery = {
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
@@ -158,9 +182,10 @@ describe('Reservations Detail API', () => {
       }
 
       mockSupabase.from
-        .mockReturnValueOnce(mockSelectQuery)      // Get vehicle_id
-        .mockReturnValueOnce(mockVehicleUpdateQuery) // Update vehicle
-        .mockReturnValueOnce(mockReservationUpdateQuery) // Update reservation
+        .mockReturnValueOnce(mockOwnershipQuery)         // 소유권 검증
+        .mockReturnValueOnce(mockSelectQuery)             // Get vehicle_id
+        .mockReturnValueOnce(mockVehicleUpdateQuery)      // Update vehicle
+        .mockReturnValueOnce(mockReservationUpdateQuery)  // Update reservation
 
       const { PUT } = await import('@/app/api/reservations/[id]/route')
 
@@ -176,6 +201,8 @@ describe('Reservations Detail API', () => {
     })
 
     it('should cancel reservation', async () => {
+      const mockOwnershipQuery = createOwnershipMock()
+
       const mockSelectQuery = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
@@ -201,6 +228,7 @@ describe('Reservations Detail API', () => {
       }
 
       mockSupabase.from
+        .mockReturnValueOnce(mockOwnershipQuery)
         .mockReturnValueOnce(mockSelectQuery)
         .mockReturnValueOnce(mockVehicleUpdateQuery)
         .mockReturnValueOnce(mockReservationUpdateQuery)
@@ -219,6 +247,9 @@ describe('Reservations Detail API', () => {
     })
 
     it('should return error for invalid action', async () => {
+      // 소유권 검증은 통과해야 함
+      mockSupabase.from.mockReturnValue(createOwnershipMock())
+
       const { PUT } = await import('@/app/api/reservations/[id]/route')
 
       const request = new Request('http://localhost:3000/api/reservations/res-1', {
@@ -236,15 +267,16 @@ describe('Reservations Detail API', () => {
 
     it('should update reservation info without action', async () => {
       const mockUpdateQuery = {
+        select: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: { id: 'res-1', customer_phone: '01098765432' },
           error: null,
         }),
       }
 
+      // mockReturnValue → 소유권 검증과 업데이트 모두 같은 mock 사용
       mockSupabase.from.mockReturnValue(mockUpdateQuery)
 
       const { PUT } = await import('@/app/api/reservations/[id]/route')
@@ -302,7 +334,7 @@ describe('Reservations Detail API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('Delete failed')
+      expect(json.error).toBe('예약 취소에 실패했습니다.')
       expect(response.status).toBe(500)
     })
   })

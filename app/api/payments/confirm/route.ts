@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { capturePaymentError } from '@/lib/sentry'
 import { withAuth } from '@/lib/auth/with-auth'
+import { canAccessReservation } from '@/lib/auth/ownership'
 
 // POST: 토스페이먼츠 카드 결제 승인 (인증된 사용자)
-export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user }) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -18,10 +19,10 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       )
     }
 
-    // DB에서 결제 정보 조회
+    // DB에서 결제 정보 조회 (예약 소유권 검증용 필드 포함)
     const { data: paymentRecord, error: fetchError } = await supabase
       .from('payments')
-      .select('*, branch:branches(submall_id, hq_submall_id)')
+      .select('*, branch:branches(submall_id, hq_submall_id), reservation:reservations(user_id, customer_email, branch_id)')
       .eq('pg_order_id', orderId)
       .single()
 
@@ -29,6 +30,20 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       return NextResponse.json(
         { success: false, error: '결제 정보를 찾을 수 없습니다.' },
         { status: 404 }
+      )
+    }
+
+    // 소유권 검증 (reservation join이 null이면 데이터 무결성 오류)
+    if (!paymentRecord.reservation) {
+      return NextResponse.json(
+        { success: false, error: '연결된 예약 정보를 찾을 수 없습니다.' },
+        { status: 400 }
+      )
+    }
+    if (!canAccessReservation(user!, paymentRecord.reservation)) {
+      return NextResponse.json(
+        { success: false, error: '해당 결제에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
       )
     }
 

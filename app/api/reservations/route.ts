@@ -162,6 +162,7 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async
         total_price: pricing.total_price,
         options: options || {},
         customer_memo,
+        user_id: user?.id || null,
         status: 'pending',
         payment_status: 'unpaid'
       })

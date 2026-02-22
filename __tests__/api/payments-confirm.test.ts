@@ -8,16 +8,33 @@ const mockUpdate = jest.fn()
 const mockEq = jest.fn()
 const mockSingle = jest.fn()
 const mockFrom = jest.fn()
+const mockRpc = jest.fn()
 
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => Promise.resolve({
     from: mockFrom,
+    rpc: mockRpc,
   })),
+}))
+
+jest.mock('@/lib/auth/rbac', () => ({
+  ...jest.requireActual('@/lib/auth/rbac'),
+  checkAuth: jest.fn().mockResolvedValue({
+    success: true,
+    user: { id: 'admin-user', email: 'admin@test.com', role: 'admin' },
+  }),
+}))
+
+jest.mock('@/lib/sentry', () => ({
+  capturePaymentError: jest.fn(),
 }))
 
 // Mock fetch for Toss API
 const mockFetch = jest.fn()
 global.fetch = mockFetch
+
+// admin 사용자에게 소유권 검증 통과하는 reservation 데이터
+const mockReservation = { user_id: 'admin-user', customer_email: 'admin@test.com', branch_id: 'test-branch' }
 
 describe('Payments Confirm API', () => {
   beforeEach(() => {
@@ -101,6 +118,7 @@ describe('Payments Confirm API', () => {
           amount: 100000, // DB amount
           branch_submall_id: 'branch-1',
           hq_submall_id: 'hq-1',
+          reservation: mockReservation,
         },
         error: null,
       })
@@ -132,6 +150,7 @@ describe('Payments Confirm API', () => {
         data: {
           id: 'payment-1',
           amount: 100000,
+          reservation: mockReservation,
         },
         error: null,
       })
@@ -162,10 +181,12 @@ describe('Payments Confirm API', () => {
         data: {
           id: 'payment-1',
           amount: 100000,
+          reservation_id: 'reservation-1',
           branch_submall_id: 'branch-submall',
           hq_submall_id: 'hq-submall',
           branch_settlement_amount: 90000,
           hq_settlement_amount: 10000,
+          reservation: mockReservation,
         },
         error: null,
       })
@@ -184,7 +205,13 @@ describe('Payments Confirm API', () => {
         }),
       })
 
-      // Payment update
+      // RPC fallback (PGRST202)
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST202', message: 'Function not found' },
+      })
+
+      // Fallback: payment update → select → single
       mockSingle.mockResolvedValueOnce({
         data: {
           id: 'payment-1',
@@ -194,7 +221,7 @@ describe('Payments Confirm API', () => {
         error: null,
       })
 
-      // Reservation update mock
+      // Fallback: reservation update
       mockUpdate.mockReturnValue({
         eq: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
@@ -233,6 +260,7 @@ describe('Payments Confirm API', () => {
           amount: 100000,
           branch_submall_id: 'branch-submall',
           hq_submall_id: 'hq-submall',
+          reservation: mockReservation,
         },
         error: null,
       })

@@ -8,11 +8,21 @@ const mockUpdate = jest.fn()
 const mockEq = jest.fn()
 const mockSingle = jest.fn()
 const mockFrom = jest.fn()
+const mockRpc = jest.fn()
 
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => Promise.resolve({
     from: mockFrom,
+    rpc: mockRpc,
   })),
+}))
+
+jest.mock('@/lib/auth/rbac', () => ({
+  ...jest.requireActual('@/lib/auth/rbac'),
+  checkAuth: jest.fn().mockResolvedValue({
+    success: true,
+    user: { id: 'admin-user', email: 'admin@test.com', role: 'admin' },
+  }),
 }))
 
 // Mock fetch for Toss API
@@ -137,17 +147,22 @@ describe('Payments Refund API', () => {
     })
 
     it('should process full refund successfully', async () => {
-      // Payment query
-      mockSingle.mockResolvedValueOnce({
-        data: {
-          id: 'payment-1',
-          status: 'completed',
-          amount: 100000,
-          pg_transaction_id: 'toss-key-123',
-          reservation_id: 'reservation-1',
-        },
-        error: null,
-      })
+      // 1) Payment query → 2) Vehicle restore: reservation vehicle_id query
+      mockSingle
+        .mockResolvedValueOnce({
+          data: {
+            id: 'payment-1',
+            status: 'completed',
+            amount: 100000,
+            pg_transaction_id: 'toss-key-123',
+            reservation_id: 'reservation-1',
+          },
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { vehicle_id: 'vehicle-1' },
+          error: null,
+        })
 
       // Toss API refund response
       mockFetch.mockResolvedValueOnce({
@@ -155,20 +170,18 @@ describe('Payments Refund API', () => {
         json: () => Promise.resolve({
           paymentKey: 'toss-key-123',
           status: 'CANCELED',
-          cancels: [{ cancelAmount: 100000 }],
         }),
       })
 
-      // Payment update
+      // RPC fallback (function not found → PGRST202)
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST202', message: 'Function not found' },
+      })
+
+      // Update chains (fallback payment/reservation update + vehicle restore)
       mockUpdate.mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'payment-1', status: 'refunded' },
-              error: null,
-            }),
-          }),
-        }),
+        eq: jest.fn().mockResolvedValue({ error: null }),
       })
 
       jest.resetModules()
@@ -193,6 +206,7 @@ describe('Payments Refund API', () => {
     })
 
     it('should process partial refund successfully', async () => {
+      // Payment query
       mockSingle.mockResolvedValueOnce({
         data: {
           id: 'payment-1',
@@ -204,6 +218,7 @@ describe('Payments Refund API', () => {
         error: null,
       })
 
+      // Toss API response
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
@@ -212,15 +227,15 @@ describe('Payments Refund API', () => {
         }),
       })
 
+      // RPC fallback (function not found → PGRST202)
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST202', message: 'Function not found' },
+      })
+
+      // Update chain (fallback payment update only, no reservation update for partial)
       mockUpdate.mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'payment-1', status: 'partial_refund' },
-              error: null,
-            }),
-          }),
-        }),
+        eq: jest.fn().mockResolvedValue({ error: null }),
       })
 
       jest.resetModules()

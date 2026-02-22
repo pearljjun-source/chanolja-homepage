@@ -17,6 +17,15 @@ jest.mock('@/lib/supabase/server', () => ({
   })),
 }))
 
+// 인증 레이어 mock: admin 사용자로 고정
+jest.mock('@/lib/auth/rbac', () => ({
+  ...jest.requireActual('@/lib/auth/rbac'),
+  checkAuth: jest.fn().mockResolvedValue({
+    success: true,
+    user: { id: 'admin-user', email: 'admin@test.com', role: 'admin', branchId: 'test-branch' },
+  }),
+}))
+
 // Setup chain mocking
 beforeEach(() => {
   jest.clearAllMocks()
@@ -114,7 +123,7 @@ describe('Vehicles API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('Database error')
+      expect(json.error).toBe('차량 목록 조회에 실패했습니다.')
       expect(response.status).toBe(500)
     })
   })
@@ -183,7 +192,7 @@ describe('Vehicles API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('Insert failed')
+      expect(json.error).toBe('차량 등록에 실패했습니다.')
       expect(response.status).toBe(500)
     })
   })

@@ -2,6 +2,10 @@
  * @jest-environment node
  */
 
+// 테스트용 UUID
+const BRANCH_UUID = '550e8400-e29b-41d4-a716-446655440001'
+const VEHICLE_UUID = '550e8400-e29b-41d4-a716-446655440002'
+
 describe('Reservations API', () => {
   let mockSupabase: any
 
@@ -15,6 +19,27 @@ describe('Reservations API', () => {
 
     jest.doMock('@/lib/supabase/server', () => ({
       createClient: jest.fn(() => Promise.resolve(mockSupabase)),
+    }))
+
+    // 인증 레이어 mock: admin 사용자로 고정
+    jest.doMock('@/lib/auth/rbac', () => ({
+      ...jest.requireActual('@/lib/auth/rbac'),
+      checkAuth: jest.fn().mockResolvedValue({
+        success: true,
+        user: { id: 'admin-user', email: 'admin@test.com', role: 'admin' },
+      }),
+    }))
+
+    // 가격 계산 mock
+    jest.doMock('@/lib/pricing/calculate-price', () => ({
+      calculateReservationPrice: jest.fn().mockResolvedValue({
+        base_price: 150000,
+        insurance_fee: 0,
+        additional_fee: 0,
+        discount_amount: 0,
+        total_price: 150000,
+        rental_days: 3,
+      }),
     }))
   })
 
@@ -73,7 +98,7 @@ describe('Reservations API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('Database error')
+      expect(json.error).toBe('예약 목록 조회에 실패했습니다.')
       expect(response.status).toBe(500)
     })
   })
@@ -93,7 +118,7 @@ describe('Reservations API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('필수 필드가 누락되었습니다.')
+      // Zod 검증 에러 (branch_id 누락 등)
       expect(response.status).toBe(400)
     })
 
@@ -115,8 +140,8 @@ describe('Reservations API', () => {
       const request = new Request('http://localhost:3000/api/reservations', {
         method: 'POST',
         body: JSON.stringify({
-          branch_id: 'branch-1',
-          vehicle_id: 'vehicle-1',
+          branch_id: BRANCH_UUID,
+          vehicle_id: VEHICLE_UUID,
           customer_name: '홍길동',
           customer_phone: '01012345678',
           start_date: '2024-01-15',
@@ -167,13 +192,12 @@ describe('Reservations API', () => {
       const request = new Request('http://localhost:3000/api/reservations', {
         method: 'POST',
         body: JSON.stringify({
-          branch_id: 'branch-1',
-          vehicle_id: 'vehicle-1',
+          branch_id: BRANCH_UUID,
+          vehicle_id: VEHICLE_UUID,
           customer_name: '홍길동',
           customer_phone: '01012345678',
           start_date: '2024-01-15',
           end_date: '2024-01-17',
-          total_price: 150000,
         }),
       })
 
@@ -213,8 +237,8 @@ describe('Reservations API', () => {
       const request = new Request('http://localhost:3000/api/reservations', {
         method: 'POST',
         body: JSON.stringify({
-          branch_id: 'branch-1',
-          vehicle_id: 'vehicle-1',
+          branch_id: BRANCH_UUID,
+          vehicle_id: VEHICLE_UUID,
           customer_name: '홍길동',
           customer_phone: '01012345678',
           start_date: '2024-01-15',
@@ -226,7 +250,7 @@ describe('Reservations API', () => {
       const json = await response.json()
 
       expect(json.success).toBe(false)
-      expect(json.error).toBe('Insert failed')
+      expect(json.error).toBe('예약 생성에 실패했습니다.')
       expect(response.status).toBe(500)
     })
   })

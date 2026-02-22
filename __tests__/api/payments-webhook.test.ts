@@ -2,6 +2,8 @@
  * @jest-environment node
  */
 
+import crypto from 'crypto'
+
 // Mock Supabase
 const mockSelect = jest.fn()
 const mockUpdate = jest.fn()
@@ -15,10 +17,23 @@ jest.mock('@/lib/supabase/server', () => ({
   })),
 }))
 
+// HMAC-SHA256 서명 생성 헬퍼
+function createSignature(rawBody: string, secret: string): string {
+  const timestamp = Date.now().toString()
+  const signaturePayload = `${timestamp}.${rawBody}`
+  const sig = crypto
+    .createHmac('sha256', secret)
+    .update(signaturePayload, 'utf8')
+    .digest('hex')
+  return `t=${timestamp},v1=${sig}`
+}
+
+const WEBHOOK_SECRET = 'webhook-secret'
+
 describe('Payments Webhook API', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+    process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
 
     mockFrom.mockReturnValue({
       select: mockSelect,
@@ -47,17 +62,21 @@ describe('Payments Webhook API', () => {
   })
 
   describe('POST /api/payments/webhook', () => {
-    it('should return unauthorized when secret mismatch', async () => {
+    it('should return unauthorized when signature is missing', async () => {
       jest.resetModules()
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: {},
+      })
+
+      // Toss-Signature 헤더 없이 요청
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'wrong-secret',
-          eventType: 'PAYMENT_STATUS_CHANGED',
-          data: {},
-        }),
+        body,
+        headers: { 'Content-Type': 'application/json' },
       })
 
       const response = await POST(request as any)
@@ -66,6 +85,30 @@ describe('Payments Webhook API', () => {
       expect(json.success).toBe(false)
       expect(json.error).toBe('Unauthorized')
       expect(response.status).toBe(401)
+    })
+
+    it('should return 500 when webhook secret not configured', async () => {
+      delete process.env.TOSS_PAYMENTS_WEBHOOK_SECRET
+
+      jest.resetModules()
+      const { POST } = await import('@/app/api/payments/webhook/route')
+
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: {},
+      })
+
+      const request = new Request('http://localhost:3000/api/payments/webhook', {
+        method: 'POST',
+        body,
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(json.error).toBe('Webhook not configured')
+      expect(response.status).toBe(500)
     })
 
     it('should handle PAYMENT_STATUS_CHANGED with DONE status', async () => {
@@ -87,20 +130,26 @@ describe('Payments Webhook API', () => {
       })
 
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: {
+          orderId: 'order-123',
+          paymentKey: 'payment-key-123',
+          status: 'DONE',
+        },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'PAYMENT_STATUS_CHANGED',
-          data: {
-            orderId: 'order-123',
-            paymentKey: 'payment-key-123',
-            status: 'DONE',
-          },
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
@@ -124,19 +173,25 @@ describe('Payments Webhook API', () => {
       })
 
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: {
+          orderId: 'order-123',
+          status: 'CANCELED',
+        },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'PAYMENT_STATUS_CHANGED',
-          data: {
-            orderId: 'order-123',
-            status: 'CANCELED',
-          },
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
@@ -160,19 +215,25 @@ describe('Payments Webhook API', () => {
       })
 
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: {
+          orderId: 'order-123',
+          status: 'EXPIRED',
+        },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'PAYMENT_STATUS_CHANGED',
-          data: {
-            orderId: 'order-123',
-            status: 'EXPIRED',
-          },
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
@@ -210,20 +271,26 @@ describe('Payments Webhook API', () => {
       })
 
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'SETTLEMENT_COMPLETED',
+        data: {
+          orderId: 'order-123',
+          subMallId: 'branch-submall',
+          settlementAmount: 90000,
+        },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'SETTLEMENT_COMPLETED',
-          data: {
-            orderId: 'order-123',
-            subMallId: 'branch-submall',
-            settlementAmount: 90000,
-          },
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
@@ -248,20 +315,26 @@ describe('Payments Webhook API', () => {
       })
 
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'SETTLEMENT_FAILED',
+        data: {
+          orderId: 'order-123',
+          subMallId: 'branch-submall',
+          failReason: '계좌 정보 오류',
+        },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'SETTLEMENT_FAILED',
-          data: {
-            orderId: 'order-123',
-            subMallId: 'branch-submall',
-            failReason: '계좌 정보 오류',
-          },
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
@@ -272,42 +345,27 @@ describe('Payments Webhook API', () => {
 
     it('should handle unknown event types gracefully', async () => {
       jest.resetModules()
-      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = 'webhook-secret'
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
       const { POST } = await import('@/app/api/payments/webhook/route')
 
+      const body = JSON.stringify({
+        eventType: 'UNKNOWN_EVENT',
+        data: {},
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
       const request = new Request('http://localhost:3000/api/payments/webhook', {
         method: 'POST',
-        body: JSON.stringify({
-          secret: 'webhook-secret',
-          eventType: 'UNKNOWN_EVENT',
-          data: {},
-        }),
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
       })
 
       const response = await POST(request as any)
       const json = await response.json()
 
-      expect(json.success).toBe(true)
-    })
-
-    it('should work without webhook secret configured', async () => {
-      delete process.env.TOSS_PAYMENTS_WEBHOOK_SECRET
-
-      jest.resetModules()
-      const { POST } = await import('@/app/api/payments/webhook/route')
-
-      const request = new Request('http://localhost:3000/api/payments/webhook', {
-        method: 'POST',
-        body: JSON.stringify({
-          eventType: 'PAYMENT_STATUS_CHANGED',
-          data: { status: 'DONE' },
-        }),
-      })
-
-      const response = await POST(request as any)
-      const json = await response.json()
-
-      // Should succeed when no secret is configured (no verification)
       expect(json.success).toBe(true)
     })
   })

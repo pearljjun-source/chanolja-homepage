@@ -3,9 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { calculateSplitAmountsAsync } from '@/lib/payments/toss-client'
 import { PaymentMethod, BANK_CODES, BankCode } from '@/lib/payments/types'
 import { withAuth } from '@/lib/auth/with-auth'
+import { canAccessReservation } from '@/lib/auth/ownership'
 
 // POST: 결제 요청 준비 (인증된 사용자)
-export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest) => {
+export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequest, { user }) => {
   try {
     const supabase = await createClient()
     const body = await request.json()
@@ -50,6 +51,14 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       return NextResponse.json(
         { success: false, error: '예약을 찾을 수 없습니다.' },
         { status: 404 }
+      )
+    }
+
+    // 소유권 검증 (auth: 'authenticated'이므로 user는 항상 non-null)
+    if (!canAccessReservation(user!, reservation)) {
+      return NextResponse.json(
+        { success: false, error: '해당 예약에 대한 접근 권한이 없습니다.' },
+        { status: 403 }
       )
     }
 
