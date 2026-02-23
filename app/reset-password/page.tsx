@@ -37,8 +37,8 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.')
+    if (password.length < 8) {
+      setError('비밀번호는 최소 8자 이상이어야 합니다.')
       return
     }
 

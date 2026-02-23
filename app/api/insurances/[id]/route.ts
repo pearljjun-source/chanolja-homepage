@@ -44,6 +44,29 @@ export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextReques
     const supabase = await createClient()
     const body = await request.json()
 
+    // 보험의 지점 소유권 검증 (branch_admin은 자기 지점 보험만 수정 가능)
+    if (user && user.role === 'branch_admin') {
+      const { data: insurance, error: insuranceError } = await supabase
+        .from('vehicle_insurances')
+        .select('branch_id')
+        .eq('id', id)
+        .single()
+
+      if (insuranceError || !insurance) {
+        return NextResponse.json(
+          { success: false, error: '보험 정보를 찾을 수 없습니다.' },
+          { status: 404 }
+        )
+      }
+
+      if (insurance.branch_id !== user.branchId) {
+        return NextResponse.json(
+          { success: false, error: '해당 지점의 보험만 수정할 수 있습니다.' },
+          { status: 403 }
+        )
+      }
+    }
+
     // 허용된 필드만 업데이트 (mass assignment 방지)
     const allowedFields = [
       'insurance_company',

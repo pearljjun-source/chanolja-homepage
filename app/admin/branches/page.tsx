@@ -369,8 +369,8 @@ export default function AdminBranchesPage() {
       toast.warning('비밀번호를 입력해주세요.')
       return
     }
-    if (adminPassword.length < 6) {
-      toast.warning('비밀번호는 최소 6자 이상이어야 합니다.')
+    if (adminPassword.length < 8) {
+      toast.warning('비밀번호는 최소 8자 이상이어야 합니다.')
       return
     }
 

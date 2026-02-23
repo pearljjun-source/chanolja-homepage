@@ -39,11 +39,25 @@ export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { us
       query = query.eq('payment_status', paymentStatus)
     }
 
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+
     if (startDate) {
+      if (!dateRegex.test(startDate)) {
+        return NextResponse.json(
+          { success: false, error: '시작일 형식이 올바르지 않습니다. (YYYY-MM-DD)' },
+          { status: 400 }
+        )
+      }
       query = query.gte('start_date', startDate)
     }
 
     if (endDate) {
+      if (!dateRegex.test(endDate)) {
+        return NextResponse.json(
+          { success: false, error: '종료일 형식이 올바르지 않습니다. (YYYY-MM-DD)' },
+          { status: 400 }
+        )
+      }
       query = query.lte('end_date', endDate)
     }
 

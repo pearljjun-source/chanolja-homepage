@@ -85,6 +85,21 @@ export async function POST(request: NextRequest) {
 
     const { eventType, data } = body
 
+    // 이벤트 데이터 null 체크
+    if (!eventType || typeof eventType !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Missing eventType' },
+        { status: 400 }
+      )
+    }
+
+    if (!data || typeof data !== 'object') {
+      return NextResponse.json(
+        { success: false, error: 'Missing event data' },
+        { status: 400 }
+      )
+    }
+
     console.log('Received webhook:', eventType, data)
 
     switch (eventType) {

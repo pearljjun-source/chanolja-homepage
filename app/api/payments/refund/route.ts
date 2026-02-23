@@ -10,11 +10,21 @@ export const POST = withAuth({ auth: 'admin', permission: 'manage_payments' }, a
 
     const { payment_id, refund_amount, refund_reason } = body
 
-    if (!payment_id) {
+    if (!payment_id || typeof payment_id !== 'string') {
       return NextResponse.json(
         { success: false, error: '결제 ID가 필요합니다.' },
         { status: 400 }
       )
+    }
+
+    // refund_amount가 제공된 경우 타입 및 범위 검증
+    if (refund_amount !== undefined && refund_amount !== null) {
+      if (typeof refund_amount !== 'number' || !Number.isFinite(refund_amount) || refund_amount <= 0) {
+        return NextResponse.json(
+          { success: false, error: '환불 금액은 0보다 큰 숫자여야 합니다.' },
+          { status: 400 }
+        )
+      }
     }
 
     // 결제 정보 조회

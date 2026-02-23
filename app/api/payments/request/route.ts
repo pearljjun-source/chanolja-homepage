@@ -153,8 +153,33 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
       .single()
 
     if (paymentError) {
+      // 유니크 제약조건 위반 (동시 요청으로 중복 생성 시도) → 기존 결제 반환
+      if (paymentError.code === '23505') {
+        const { data: existingPayment2 } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('reservation_id', reservation_id)
+          .in('status', ['pending', 'awaiting_deposit'])
+          .single()
+
+        if (existingPayment2) {
+          const baseUrl2 = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+          return NextResponse.json({
+            success: true,
+            data: {
+              payment_id: existingPayment2.id,
+              payment_method: existingPayment2.payment_method,
+              orderId: existingPayment2.pg_order_id,
+              amount: existingPayment2.amount,
+              successUrl: `${baseUrl2}/payment/success`,
+              failUrl: `${baseUrl2}/payment/fail`,
+            }
+          })
+        }
+      }
+
       return NextResponse.json(
-        { success: false, error: paymentError.message },
+        { success: false, error: '결제 생성에 실패했습니다.' },
         { status: 500 }
       )
     }

@@ -343,6 +343,89 @@ describe('Payments Webhook API', () => {
       expect(json.success).toBe(true)
     })
 
+    it('should return 400 when eventType is missing', async () => {
+      jest.resetModules()
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
+      const { POST } = await import('@/app/api/payments/webhook/route')
+
+      const body = JSON.stringify({
+        data: { orderId: 'order-123' },
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
+      const request = new Request('http://localhost:3000/api/payments/webhook', {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(json.error).toBe('Missing eventType')
+      expect(response.status).toBe(400)
+    })
+
+    it('should return 400 when data is null', async () => {
+      jest.resetModules()
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
+      const { POST } = await import('@/app/api/payments/webhook/route')
+
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: null,
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
+      const request = new Request('http://localhost:3000/api/payments/webhook', {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(json.error).toBe('Missing event data')
+      expect(response.status).toBe(400)
+    })
+
+    it('should return 400 when data is not an object', async () => {
+      jest.resetModules()
+      process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET
+      const { POST } = await import('@/app/api/payments/webhook/route')
+
+      const body = JSON.stringify({
+        eventType: 'PAYMENT_STATUS_CHANGED',
+        data: 'invalid-string',
+      })
+
+      const signature = createSignature(body, WEBHOOK_SECRET)
+      const request = new Request('http://localhost:3000/api/payments/webhook', {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Toss-Signature': signature,
+        },
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(json.error).toBe('Missing event data')
+      expect(response.status).toBe(400)
+    })
+
     it('should handle unknown event types gracefully', async () => {
       jest.resetModules()
       process.env.TOSS_PAYMENTS_WEBHOOK_SECRET = WEBHOOK_SECRET

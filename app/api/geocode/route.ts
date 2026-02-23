@@ -21,8 +21,15 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'default' }, async (re
   try {
     const { address } = await request.json()
 
-    if (!address) {
+    if (!address || typeof address !== 'string') {
       return NextResponse.json({ success: false, error: '주소가 필요합니다' }, { status: 400 })
+    }
+
+    if (address.length > 200) {
+      return NextResponse.json(
+        { success: false, error: '주소는 200자 이내로 입력해주세요.' },
+        { status: 400 }
+      )
     }
 
     const kakaoApiKey = process.env.KAKAO_REST_API_KEY

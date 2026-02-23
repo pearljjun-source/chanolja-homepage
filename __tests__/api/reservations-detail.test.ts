@@ -21,6 +21,10 @@ describe('Reservations Detail API', () => {
 
     mockSupabase = {
       from: jest.fn(),
+      rpc: jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST202', message: 'Function not found' },
+      }),
     }
 
     jest.doMock('@/lib/supabase/server', () => ({

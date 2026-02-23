@@ -139,6 +139,64 @@ describe('Geocode API', () => {
       expect(json.data.lng).toBeNull()
     })
 
+    it('should return error when address exceeds 200 characters', async () => {
+      const { POST } = await import('@/app/api/geocode/route')
+
+      const longAddress = 'A'.repeat(201)
+      const request = new Request('http://localhost:3000/api/geocode', {
+        method: 'POST',
+        body: JSON.stringify({ address: longAddress }),
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(json.error).toBe('주소는 200자 이내로 입력해주세요.')
+      expect(response.status).toBe(400)
+    })
+
+    it('should accept address with exactly 200 characters', async () => {
+      mockFetch.mockResolvedValueOnce({})
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({
+          documents: [{ x: '127.0', y: '37.5' }],
+        }),
+      })
+
+      jest.resetModules()
+      process.env.KAKAO_REST_API_KEY = 'test-api-key'
+      global.fetch = mockFetch
+
+      const { POST } = await import('@/app/api/geocode/route')
+
+      const address200 = 'A'.repeat(200)
+      const request = new Request('http://localhost:3000/api/geocode', {
+        method: 'POST',
+        body: JSON.stringify({ address: address200 }),
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(true)
+    })
+
+    it('should return error when address is not a string', async () => {
+      const { POST } = await import('@/app/api/geocode/route')
+
+      const request = new Request('http://localhost:3000/api/geocode', {
+        method: 'POST',
+        body: JSON.stringify({ address: 12345 }),
+      })
+
+      const response = await POST(request as any)
+      const json = await response.json()
+
+      expect(json.success).toBe(false)
+      expect(response.status).toBe(400)
+    })
+
     it('should handle fetch errors gracefully', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 

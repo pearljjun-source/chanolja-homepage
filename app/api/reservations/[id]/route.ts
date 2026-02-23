@@ -79,89 +79,128 @@ export const PUT = withAuth({ auth: 'branch_admin' }, async (request: NextReques
     // 상태 변경인 경우
     if (body.action) {
       const { action } = body
-      let updateData: Record<string, unknown> = {}
+      const validActions = ['approve', 'confirm', 'start', 'complete', 'cancel']
 
-      switch (action) {
-        case 'approve':
-          updateData = { status: 'approved' }
-          break
-        case 'confirm':
-          updateData = { status: 'confirmed', payment_status: 'paid' }
-          break
-        case 'start':
-          updateData = { status: 'in_use' }
-          // 차량 상태도 변경
-          const { data: reservation } = await supabase
-            .from('reservations')
-            .select('vehicle_id')
-            .eq('id', id)
-            .single()
-          if (reservation) {
-            await supabase
-              .from('vehicles')
-              .update({ status: 'rented' })
-              .eq('id', reservation.vehicle_id)
-          }
-          break
-        case 'complete':
-          updateData = { status: 'completed' }
-          // 차량 상태 복구
-          const { data: completeRes } = await supabase
-            .from('reservations')
-            .select('vehicle_id')
-            .eq('id', id)
-            .single()
-          if (completeRes) {
-            await supabase
-              .from('vehicles')
-              .update({ status: 'available' })
-              .eq('id', completeRes.vehicle_id)
-          }
-          break
-        case 'cancel':
-          updateData = {
-            status: 'cancelled',
-            cancelled_at: new Date().toISOString(),
-            cancel_reason: body.cancel_reason || null
-          }
-          // 차량 상태 복구
-          const { data: cancelRes } = await supabase
-            .from('reservations')
-            .select('vehicle_id')
-            .eq('id', id)
-            .single()
-          if (cancelRes) {
-            await supabase
-              .from('vehicles')
-              .update({ status: 'available' })
-              .eq('id', cancelRes.vehicle_id)
-          }
-          break
-        default:
-          return NextResponse.json(
-            { success: false, error: '잘못된 액션입니다.' },
-            { status: 400 }
-          )
+      if (!validActions.includes(action)) {
+        return NextResponse.json(
+          { success: false, error: '잘못된 액션입니다.' },
+          { status: 400 }
+        )
       }
 
-      const { data, error } = await supabase
-        .from('reservations')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single()
+      // RPC로 원자적 상태 전환 (예약 + 차량 동시 업데이트)
+      const { data: txResult, error: txError } = await supabase
+        .rpc('transition_reservation_status', {
+          p_reservation_id: id,
+          p_action: action,
+          p_cancel_reason: body.cancel_reason || null,
+        })
 
-      if (error) {
-        console.error('Reservation action error:', error.message)
+      // RPC 함수가 없는 경우 기존 방식으로 폴백
+      if (txError?.code === 'PGRST202') {
+        let updateData: Record<string, unknown> = {}
+
+        switch (action) {
+          case 'approve':
+            updateData = { status: 'approved' }
+            break
+          case 'confirm':
+            updateData = { status: 'confirmed', payment_status: 'paid' }
+            break
+          case 'start': {
+            updateData = { status: 'in_use' }
+            const { data: reservation } = await supabase
+              .from('reservations')
+              .select('vehicle_id')
+              .eq('id', id)
+              .single()
+            if (reservation) {
+              await supabase
+                .from('vehicles')
+                .update({ status: 'rented' })
+                .eq('id', reservation.vehicle_id)
+            }
+            break
+          }
+          case 'complete': {
+            updateData = { status: 'completed' }
+            const { data: completeRes } = await supabase
+              .from('reservations')
+              .select('vehicle_id')
+              .eq('id', id)
+              .single()
+            if (completeRes) {
+              await supabase
+                .from('vehicles')
+                .update({ status: 'available' })
+                .eq('id', completeRes.vehicle_id)
+            }
+            break
+          }
+          case 'cancel': {
+            updateData = {
+              status: 'cancelled',
+              cancelled_at: new Date().toISOString(),
+              cancel_reason: body.cancel_reason || null
+            }
+            const { data: cancelRes } = await supabase
+              .from('reservations')
+              .select('vehicle_id')
+              .eq('id', id)
+              .single()
+            if (cancelRes) {
+              await supabase
+                .from('vehicles')
+                .update({ status: 'available' })
+                .eq('id', cancelRes.vehicle_id)
+            }
+            break
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('reservations')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Reservation action error:', error.message)
+          return NextResponse.json(
+            { success: false, error: '예약 상태 변경에 실패했습니다.' },
+            { status: 500 }
+          )
+        }
+
+        return NextResponse.json({
+          success: true,
+          data,
+          message: '예약 상태가 변경되었습니다.'
+        })
+      } else if (txError) {
+        console.error('Reservation transition error:', txError)
         return NextResponse.json(
           { success: false, error: '예약 상태 변경에 실패했습니다.' },
           { status: 500 }
         )
+      } else if (!txResult?.success) {
+        return NextResponse.json(
+          { success: false, error: txResult?.error || '예약 상태 변경 실패' },
+          { status: 400 }
+        )
       }
+
+      // RPC 성공 - 업데이트된 예약 데이터 다시 조회
+      const { data: updatedReservation } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('id', id)
+        .single()
 
       return NextResponse.json({
         success: true,
-        data,
+        data: updatedReservation,
         message: '예약 상태가 변경되었습니다.'
       })
     }
