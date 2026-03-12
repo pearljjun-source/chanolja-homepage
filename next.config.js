@@ -40,7 +40,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "img-src 'self' data: blob: https://*.supabase.co https://wcs.naver.net https://*.map.naver.com https://oapi.map.naver.com https://*.pstatic.net https://*.map.naver.net",
       "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
-      "connect-src 'self' https://*.supabase.co https://api.tosspayments.com https://wcs.naver.net https://wcs.naver.com https://*.naver.com https://*.map.naver.com https://oapi.map.naver.com https://*.pstatic.net https://*.map.naver.net https://*.sentry.io",
+      "connect-src 'self' https://*.supabase.co https://api.tosspayments.com https://wcs.naver.net https://wcs.naver.com https://*.naver.com https://*.map.naver.com https://oapi.map.naver.com https://*.pstatic.net https://*.map.naver.net https://*.sentry.io https://cdn.jsdelivr.net",
       "frame-src 'self' https://js.tosspayments.com https://*.map.naver.com https://map.naver.com",
       "object-src 'none'",
       "base-uri 'self'",

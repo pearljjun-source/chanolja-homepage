@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { MapPin, Phone, Car, Tent, Globe, ExternalLink, Home } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 
 interface Branch {
   id: string
@@ -33,7 +34,7 @@ export default function BranchesList() {
         // 지점 조회
         const { data: branchesData, error: branchesError } = await supabase
           .from('branches')
-          .select('*')
+          .select(BRANCHES_PUBLIC_COLUMNS)
           .eq('is_active', true)
           .order('name', { ascending: true })
 

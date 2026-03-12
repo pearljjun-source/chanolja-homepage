@@ -10,6 +10,7 @@ import {
   Navigation
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch } from '@/types/database'
 
 export default function BranchLocationPage() {
@@ -29,7 +30,7 @@ export default function BranchLocationPage() {
       const supabase = createClient()
       const { data: allBranches, error } = await supabase
         .from('branches')
-        .select('*')
+        .select(BRANCHES_PUBLIC_COLUMNS)
         .eq('is_active', true)
 
       if (error || !allBranches) {

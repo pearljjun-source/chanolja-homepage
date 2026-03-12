@@ -21,6 +21,7 @@ import {
   Shield
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch, Vehicle } from '@/types/database'
 
 const fuelTypeLabels: Record<string, string> = {
@@ -73,7 +74,7 @@ export default function VehicleDetailPage() {
           const supabase = createClient()
           const { data: allBranches } = await supabase
             .from('branches')
-            .select('*')
+            .select(BRANCHES_PUBLIC_COLUMNS)
             .eq('is_active', true)
 
           if (allBranches) {

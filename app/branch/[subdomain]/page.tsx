@@ -22,6 +22,7 @@ import {
   Play
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch, Vehicle, Review } from '@/types/database'
 import { getTheme, themeClasses, type ThemeType } from '@/lib/themes'
 
@@ -44,7 +45,7 @@ export default function BranchHomePage() {
       const supabase = createClient()
       const { data: allBranches, error } = await supabase
         .from('branches')
-        .select('*')
+        .select(BRANCHES_PUBLIC_COLUMNS)
         .eq('is_active', true)
 
       if (error || !allBranches) {

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch } from '@/types/database'
 
 export default function BranchAdminLoginPage() {
@@ -32,7 +33,7 @@ export default function BranchAdminLoginPage() {
       const supabase = createClient()
       const { data: allBranches } = await supabase
         .from('branches')
-        .select('*')
+        .select(BRANCHES_PUBLIC_COLUMNS)
         .eq('is_active', true)
 
       if (!allBranches) {

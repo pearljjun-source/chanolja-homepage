@@ -13,6 +13,7 @@ import {
   Quote
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch, Vehicle, Review } from '@/types/database'
 
 export default function ReviewsPage() {
@@ -46,7 +47,7 @@ export default function ReviewsPage() {
       // 지점 정보 조회
       const { data: allBranches } = await supabase
         .from('branches')
-        .select('*')
+        .select(BRANCHES_PUBLIC_COLUMNS)
         .eq('is_active', true)
 
       if (!allBranches) {

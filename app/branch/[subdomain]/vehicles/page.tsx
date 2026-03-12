@@ -14,6 +14,7 @@ import {
   ShieldCheck
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleWithInsurance extends Omit<Vehicle, 'insurance'> {
@@ -68,7 +69,7 @@ export default function BranchVehiclesPage() {
       const supabase = createClient()
       const { data: allBranches, error } = await supabase
         .from('branches')
-        .select('*')
+        .select(BRANCHES_PUBLIC_COLUMNS)
         .eq('is_active', true)
 
       if (error || !allBranches) {
