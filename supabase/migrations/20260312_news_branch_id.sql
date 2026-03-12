@@ -5,7 +5,7 @@ ALTER TABLE news ADD COLUMN IF NOT EXISTS branch_id uuid REFERENCES branches(id)
 
 -- 인덱스 추가
 CREATE INDEX IF NOT EXISTS idx_news_branch_id ON news(branch_id);
-CREATE INDEX IF NOT EXISTS idx_news_branch_published ON news(branch_id, is_published, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_news_branch_published ON news(branch_id, is_published, created_at DESC);
 
 -- anon 역할에 branch_id 읽기 권한 부여
 GRANT SELECT (branch_id) ON news TO anon;
