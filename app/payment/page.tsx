@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CreditCard, Building, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react'
 import { BANK_CODES, BankCode, SPLIT_RATIO } from '@/lib/payments/types'
+import { formatDateTime } from '@/lib/utils'
 
 type PaymentMethod = 'card' | 'virtualAccount'
 
@@ -199,17 +200,6 @@ function PaymentContent() {
     return new Intl.NumberFormat('ko-KR').format(price)
   }
 
-  // 날짜 포맷
-  function formatDate(dateStr: string) {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   if (!reservationId) {
     return (
@@ -263,7 +253,7 @@ function PaymentContent() {
               <div className="flex justify-between">
                 <span className="text-gray-600">입금기한</span>
                 <span className="text-red-600 font-semibold">
-                  {formatDate(virtualAccountInfo.dueDate)}
+                  {formatDateTime(virtualAccountInfo.dueDate)}
                 </span>
               </div>
             </div>

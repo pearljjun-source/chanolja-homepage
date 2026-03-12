@@ -144,7 +144,7 @@ export default function InquirySection() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1">운영시간</p>
-                  <p className="text-white/80">월~금 09:00 - 18:00</p>
+                  <p className="text-white/80">{HQ.operatingHours}</p>
                 </div>
               </div>
 
@@ -155,7 +155,7 @@ export default function InquirySection() {
                 <div>
                   <p className="font-semibold mb-1">본사 위치</p>
                   <p className="text-white/80">
-                    충청남도 천안시 동남구 충절로 224 1층
+                    {HQ.address}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { findBranchFromList } from '@/lib/supabase/branch-lookup'
 import BranchLayoutClient from './BranchLayoutClient'
 
 interface Props {
@@ -23,14 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       }
     }
 
-    // subdomain 또는 name으로 지점 찾기
-    let branch = branches.find(b => b.subdomain === subdomain)
-    if (!branch) {
-      branch = branches.find(b => b.name === subdomain)
-    }
-    if (!branch) {
-      branch = branches.find(b => b.name.includes(subdomain))
-    }
+    const branch = findBranchFromList(branches, subdomain)
 
     if (!branch) {
       return {

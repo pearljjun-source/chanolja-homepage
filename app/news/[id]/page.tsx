@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { ArrowLeft, Calendar, Share2, Eye } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import { sanitizeContent } from '@/lib/sanitize'
+import { NEWS_CATEGORY_LABELS as categoryLabels, NEWS_CATEGORY_COLORS as categoryColors } from '@/lib/constants/categories'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,20 +12,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
-
-const categoryColors: Record<string, string> = {
-  news: 'bg-blue-100 text-blue-600',
-  notice: 'bg-red-100 text-red-600',
-  media: 'bg-purple-100 text-purple-600',
-  event: 'bg-orange-100 text-orange-600',
-}
-
-const categoryLabels: Record<string, string> = {
-  news: '뉴스',
-  notice: '공지사항',
-  media: '미디어',
-  event: '이벤트',
-}
 
 async function getNews(id: string) {
   const { data, error } = await supabase

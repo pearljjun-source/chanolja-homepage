@@ -1,15 +1,16 @@
 'use client'
 
 import { Building2, FileText, MapPin, Calendar, Coins, TrendingUp } from 'lucide-react'
+import { HQ } from '@/lib/constants/company'
 
 const companies = [
   {
-    name: '지에스렌트카(주)',
+    name: HQ.companyName,
     info: [
-      { label: '사업자번호', value: '312-81-96863' },
+      { label: '사업자번호', value: HQ.businessNumber },
       { label: '법인번호', value: '161511-0096101' },
-      { label: '대표자', value: '전 은 태' },
-      { label: '본사주소', value: '충남 천안시 동남구 충절로 224, 1층' },
+      { label: '대표자', value: HQ.ceo },
+      { label: '본사주소', value: `${HQ.address}, 1층` },
       { label: '설립연도', value: '2008년 02월 11일' },
       { label: '자본금', value: '21억' },
       { label: '자산규모', value: '200억 (2022년 01월 기준)' },
@@ -20,7 +21,7 @@ const companies = [
     info: [
       { label: '사업자번호', value: '471-81-03474' },
       { label: '법인번호', value: '161511-0365217' },
-      { label: '본사주소', value: '충남 천안시 동남구 충절로 224, 3층' },
+      { label: '본사주소', value: `${HQ.address}, 3층` },
       { label: '설립연도', value: '2024년' },
       { label: '사업영역', value: '차놀자 관련 법인 사업 기획 운영' },
     ],
@@ -30,7 +31,7 @@ const companies = [
     info: [
       { label: '사업자번호', value: '694-81-02025' },
       { label: '법인번호', value: '161571-0012440' },
-      { label: '본사주소', value: '충남 천안시 동남구 충절로 224, 1층' },
+      { label: '본사주소', value: `${HQ.address}, 1층` },
       { label: '설립연도', value: '2021년' },
       { label: '사업영역', value: '협동조합원 모집, 조합사업, 조합비/운영비 관리' },
     ],

@@ -109,8 +109,7 @@ export default function BranchAboutPage() {
                 <>
                   <p className="text-gray-600 mb-6 leading-relaxed">
                     차놀자 {branch.name}은 {branch.region} 지역에서 고객님께 최고의 렌트카 서비스를 제공하기 위해
-                    노력하고 있습니다. 깨끗하고 안전한 차량, 합리적인 가격, 친절한 서비스로
-                    고객님의 편안한 이동을 책임지겠습니다.
+                    노력하고 있습니다. {BRANCH_DEFAULTS.description}
                   </p>
                   <p className="text-gray-600 leading-relaxed">
                     전국 120개 이상의 차놀자 네트워크와 함께 어디서나 편리하게

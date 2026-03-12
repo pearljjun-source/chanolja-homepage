@@ -29,6 +29,17 @@ export function formatDateFull(date: string | Date) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
+/** 날짜+시간 포맷 - YYYY년 MM월 DD일 HH:MM */
+export function formatDateTime(date: string | Date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date))
+}
+
 /** 이름 마스킹 (김철수 → 김**) */
 export function maskName(name: string) {
   if (name.length <= 1) return name

@@ -22,16 +22,17 @@ export async function findBranch(
 
   if (error || !allBranches) return null
 
-  return findBranchFromList(allBranches, decoded)
+  return findBranchFromList(allBranches as Branch[], decoded)
 }
 
 /**
  * 이미 조회한 branches 배열에서 지점 찾기
+ * 최소한 name, subdomain 필드가 포함된 객체 배열을 받을 수 있음
  */
-export function findBranchFromList(
-  branches: Branch[],
+export function findBranchFromList<T extends { name: string; subdomain?: string | null }>(
+  branches: T[],
   subdomain: string
-): Branch | null {
+): T | null {
   const decoded = decodeURIComponent(subdomain)
 
   // 1순위: subdomain 정확 매칭

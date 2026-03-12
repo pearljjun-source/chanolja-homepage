@@ -76,10 +76,26 @@ export default function BranchAdminLayout({
       if (!isLoginPage && branchData) {
         if (!currentUser) {
           router.push(`/branch/${subdomain}/admin/login`)
-        } else if (branchData.admin_email && currentUser.email?.toLowerCase() !== branchData.admin_email.toLowerCase()) {
-          // 로그인은 했지만 해당 지점 관리자가 아닌 경우
-          await supabase.auth.signOut()
-          router.push(`/branch/${subdomain}/admin/login`)
+        } else {
+          // 1차: user_roles 테이블에서 역할 및 지점 검증 (신뢰할 수 있는 소스)
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('role, branch_id')
+            .eq('user_id', currentUser.id)
+            .single()
+
+          const role = userRole?.role
+          const isHigherAdmin = role === 'super_admin' || role === 'admin'
+          const isBranchAdmin = (role === 'branch_admin' || role === 'staff') && userRole?.branch_id === branchData.id
+
+          // 2차: admin_email 매칭 (user_roles에 등록되지 않은 경우 fallback)
+          const emailMatches = branchData.admin_email && currentUser.email?.toLowerCase() === branchData.admin_email.toLowerCase()
+
+          if (!isHigherAdmin && !isBranchAdmin && !emailMatches) {
+            // 어떤 조건도 만족하지 않으면 접근 거부
+            await supabase.auth.signOut()
+            router.push(`/branch/${subdomain}/admin/login`)
+          }
         }
       }
     } catch (error) {
