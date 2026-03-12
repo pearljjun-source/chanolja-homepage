@@ -39,7 +39,7 @@ export default function BranchNewsPage() {
         .select('*')
         .eq('branch_id', found.id)
         .eq('is_published', true)
-        .order('published_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (newsData) setNewsList(newsData)
     } catch (error) {
@@ -126,7 +126,7 @@ export default function BranchNewsPage() {
                       </span>
                       <span className="text-xs text-gray-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(news.published_at).toLocaleDateString('ko-KR')}
+                        {new Date(news.created_at).toLocaleDateString('ko-KR')}
                       </span>
                     </div>
                     <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">{news.title}</h2>

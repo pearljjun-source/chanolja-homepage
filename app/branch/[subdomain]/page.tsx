@@ -89,7 +89,7 @@ export default function BranchHomePage() {
         .select('*')
         .eq('branch_id', branchData.id)
         .eq('is_published', true)
-        .order('published_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(3)
 
       if (newsData) {
@@ -171,7 +171,7 @@ export default function BranchHomePage() {
                             {getCategoryLabel(item.category)}
                           </span>
                           <span className="text-[10px] md:text-xs text-gray-400">
-                            {new Date(item.published_at).toLocaleDateString('ko-KR')}
+                            {new Date(item.created_at).toLocaleDateString('ko-KR')}
                           </span>
                         </div>
                         <h3 className="text-sm md:text-base font-bold text-gray-900 truncate group-hover:text-gray-700">
@@ -441,7 +441,7 @@ export default function BranchHomePage() {
                         {getCategoryLabel(item.category)}
                       </span>
                       <span className="text-[10px] md:text-xs text-gray-400">
-                        {new Date(item.published_at).toLocaleDateString('ko-KR')}
+                        {new Date(item.created_at).toLocaleDateString('ko-KR')}
                       </span>
                     </div>
                     <h3 className="font-bold text-gray-900 text-sm md:text-base mb-1 line-clamp-2 group-hover:text-gray-700">

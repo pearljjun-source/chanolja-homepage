@@ -9,7 +9,6 @@ export interface News {
   category: string
   thumbnail_url: string | null
   is_published: boolean
-  published_at: string
   created_at: string
   updated_at: string
   view_count?: number

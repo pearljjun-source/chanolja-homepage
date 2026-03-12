@@ -116,7 +116,6 @@ export default function BranchNewsAdminPage() {
         is_published: formData.is_published,
         thumbnail_url: thumbnailUrl,
         branch_id: branch.id,
-        published_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
 
