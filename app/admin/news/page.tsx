@@ -6,13 +6,7 @@ import { Plus, Search, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { News } from '@/types/database'
 import { useConfirm } from '@/components/ui/ConfirmModal'
-
-const categoryLabels: Record<string, string> = {
-  news: '뉴스',
-  notice: '공지사항',
-  media: '미디어',
-  event: '이벤트',
-}
+import { NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
 
 export default function AdminNewsPage() {
   const confirm = useConfirm()

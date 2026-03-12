@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PhoneCall, Home, Building, Rocket, Newspaper, MapPin } from 'lucide-react'
 import Logo from './Logo'
+import { HQ } from '@/lib/constants/company'
 
 const navigation = [
   { name: '홈', href: '/', icon: Home, mobileOnly: true },
@@ -70,13 +71,13 @@ export default function Header() {
             {/* CTA Button & Phone */}
             <div className="hidden lg:flex items-center gap-5">
               <a
-                href="tel:041-522-7000"
+                href={`tel:${HQ.phone}`}
                 className="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors group"
               >
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <PhoneCall className="w-4 h-4 text-primary" />
                 </div>
-                <span className="font-semibold text-[15px] tracking-tight">041-522-7000</span>
+                <span className="font-semibold text-[15px] tracking-tight">{HQ.phone}</span>
               </a>
               <Link
                 href="/startup#inquiry"
@@ -89,9 +90,9 @@ export default function Header() {
             {/* Mobile: Phone Button Only */}
             <div className="flex items-center lg:hidden">
               <a
-                href="tel:041-522-7000"
+                href={`tel:${HQ.phone}`}
                 className="p-2 bg-primary text-white rounded-full"
-                aria-label="전화 041-522-7000"
+                aria-label={`전화 ${HQ.phone}`}
               >
                 <PhoneCall className="w-5 h-5" />
               </a>

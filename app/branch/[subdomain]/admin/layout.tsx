@@ -17,7 +17,7 @@ import {
   Newspaper
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch } from '@/types/database'
 import type { User } from '@supabase/supabase-js'
 
@@ -56,31 +56,17 @@ export default function BranchAdminLayout({
   const fetchBranchAndCheckAuth = async () => {
     try {
       const supabase = createClient()
-      const decodedSubdomain = decodeURIComponent(subdomain)
 
       // 지점 정보 조회
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
+      const branchData = await findBranch(supabase, subdomain)
 
-      if (error || !allBranches) {
+      if (!branchData) {
         setLoading(false)
         setAuthChecked(true)
         return
       }
 
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
-
-      if (branchData) {
-        setBranch(branchData)
-      }
+      setBranch(branchData)
 
       // 로그인 상태 확인
       const { data: { user: currentUser } } = await supabase.auth.getUser()

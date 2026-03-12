@@ -5,6 +5,7 @@ import { MapPin, Phone, Car, Tent, Globe, ExternalLink, Home } from 'lucide-reac
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { HQ } from '@/lib/constants/company'
 
 interface Branch {
   id: string
@@ -198,11 +199,11 @@ export default function BranchesList() {
             가까운 지점이나 창업에 관한 문의는 본사로 연락해주세요.
           </p>
           <a
-            href="tel:041-522-7000"
+            href={`tel:${HQ.phone}`}
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary font-bold rounded-lg hover:bg-gray-100 transition-colors"
           >
             <Phone className="w-5 h-5" />
-            041-522-7000
+            {HQ.phone}
           </a>
         </div>
 

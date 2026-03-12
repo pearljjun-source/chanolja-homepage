@@ -17,6 +17,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Vehicle, Reservation, ReservationStatus } from '@/types/database'
@@ -59,12 +60,7 @@ export default function BranchReservationsPage() {
       const supabase = createClient()
 
       // 지점 정보 조회
-      const { data: branchData } = await supabase
-        .from('branches')
-        .select('*')
-        .or(`subdomain.eq.${subdomain},name.ilike.%${subdomain}%`)
-        .eq('is_active', true)
-        .single()
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)

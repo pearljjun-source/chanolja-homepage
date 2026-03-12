@@ -8,7 +8,6 @@ import {
   Car,
   MapPin,
   Phone,
-  Clock,
   Star,
   ChevronRight,
   Shield,
@@ -18,13 +17,16 @@ import {
   Users,
   Award,
   ArrowRight,
-  Newspaper,
-  Calendar
+  Newspaper
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch, Vehicle, Review, News } from '@/types/database'
 import { getTheme, themeClasses, type ThemeType } from '@/lib/themes'
+import { getCategoryLabel } from '@/lib/constants/categories'
+import { formatDateShort, maskName } from '@/lib/utils'
+import { INSURANCE_INFO, RENTAL_REQUIREMENTS } from '@/lib/constants/insurance'
+import { BRANCH_DEFAULTS } from '@/lib/constants/company'
 
 export default function BranchHomePage() {
   const params = useParams()
@@ -44,23 +46,7 @@ export default function BranchHomePage() {
   const fetchBranchData = async () => {
     try {
       const supabase = createClient()
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)
@@ -116,18 +102,6 @@ export default function BranchHomePage() {
     }
   }
 
-  // 이름 마스킹 함수
-  const maskName = (name: string) => {
-    if (name.length <= 1) return name
-    return name[0] + '*'.repeat(name.length - 1)
-  }
-
-  // 날짜 포맷 함수
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}`
-  }
-
   if (loading || !branch) {
     return null
   }
@@ -158,70 +132,72 @@ export default function BranchHomePage() {
 
         <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-20 w-full">
           <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="text-center lg:text-left">
+            {/* 지점 뉴스룸 */}
+            <div>
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 ${tc.bgLight} backdrop-blur-sm rounded-full mb-4 md:mb-6`}>
-                <Award className={`w-3 h-3 md:w-4 md:h-4 ${tc.text}`} />
-                <span className={`text-xs md:text-sm font-bold ${tc.text}`}>차놀자 공식 파트너</span>
+                <Newspaper className={`w-3 h-3 md:w-4 md:h-4 ${tc.text}`} />
+                <span className={`text-xs md:text-sm font-bold ${tc.text}`}>{branch.name} 뉴스룸</span>
               </div>
 
-              <h1 className="mb-4 md:mb-6 flex flex-col items-center lg:items-start">
-                <Image
-                  src="/images/korean logo.png"
-                  alt="차놀자"
-                  width={600}
-                  height={160}
-                  className="h-16 md:h-24 lg:h-32 w-auto"
-                />
-                <span className={`text-xl md:text-3xl lg:text-4xl font-extrabold tracking-tight ${tc.text} -mt-1 md:-mt-2`}>
-                  {branch.name}
-                  <span className="text-gray-700 font-bold ml-1">지점</span>
-                </span>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2 md:mb-4">
+                최신 소식
               </h1>
-
-              <p className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                {branch.description || '깨끗하고 안전한 차량, 합리적인 가격으로 고객님의 특별한 여정을 함께합니다.'}
+              <p className="text-sm md:text-base text-gray-500 mb-6 md:mb-8">
+                {branch.name} 지점의 최신 뉴스와 공지사항을 확인하세요
               </p>
 
-              {/* CTA 버튼 */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10">
-                <a
-                  href={`tel:${branch.phone}`}
-                  className={`group px-6 py-3.5 md:px-8 md:py-4 ${tc.bg} ${tc.bgHover} text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base`}
-                >
-                  <Phone className="w-4 h-4 md:w-5 md:h-5" />
-                  지금 예약하기
-                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-                </a>
-                <Link
-                  href={`/branch/${decodedSubdomain}/vehicles`}
-                  className={`px-6 py-3.5 md:px-8 md:py-4 bg-transparent ${tc.bgLight} ${tc.text} rounded-xl font-bold transition-all duration-300 border-2 ${tc.border} flex items-center justify-center gap-2 text-sm md:text-base`}
-                >
-                  <Car className="w-4 h-4 md:w-5 md:h-5" />
-                  차량 둘러보기
-                </Link>
-              </div>
+              {news.length > 0 ? (
+                <div className="space-y-3 mb-6">
+                  {news.slice(0, 3).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/branch/${decodedSubdomain}/news`}
+                      className="flex items-start gap-3 md:gap-4 bg-white rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all group"
+                    >
+                      {item.thumbnail_url && (
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden flex-shrink-0 relative">
+                          <Image
+                            src={item.thumbnail_url}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-1.5 py-0.5 text-[10px] md:text-xs font-medium rounded ${tc.bgLight} ${tc.text}`}>
+                            {getCategoryLabel(item.category)}
+                          </span>
+                          <span className="text-[10px] md:text-xs text-gray-400">
+                            {new Date(item.published_at).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                        <h3 className="text-sm md:text-base font-bold text-gray-900 truncate group-hover:text-gray-700">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{item.content}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm text-center mb-6">
+                  <Newspaper className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">아직 등록된 소식이 없습니다</p>
+                </div>
+              )}
 
-              {/* 빠른 정보 */}
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
-                  <div className={`w-8 h-8 md:w-10 md:h-10 ${tc.bgLight} rounded-lg flex items-center justify-center`}>
-                    <MapPin className={`w-4 h-4 md:w-5 md:h-5 ${tc.text}`} />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] md:text-xs text-gray-500 font-semibold">위치</p>
-                    <p className="text-xs md:text-sm font-bold text-gray-800">{branch.region}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
-                  <div className={`w-8 h-8 md:w-10 md:h-10 ${tc.bgLight} rounded-lg flex items-center justify-center`}>
-                    <Clock className={`w-4 h-4 md:w-5 md:h-5 ${tc.text}`} />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] md:text-xs text-gray-500 font-semibold">영업시간</p>
-                    <p className="text-xs md:text-sm font-bold text-gray-800">{branch.business_hours || '09:00 - 21:00'}</p>
-                  </div>
-                </div>
-              </div>
+              <Link
+                href={`/branch/${decodedSubdomain}/news`}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 ${tc.bgLight} ${tc.text} rounded-xl font-bold text-sm md:text-base hover:opacity-80 transition-opacity`}
+              >
+                <Newspaper className="w-4 h-4" />
+                모든 소식 보기
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
 
             {/* 우측 Quick Info Hub - 데스크톱 전용 */}
@@ -278,44 +254,6 @@ export default function BranchHomePage() {
                 </Link>
               </div>
 
-              {/* 최신 뉴스 미리보기 */}
-              {news.length > 0 && (
-                <Link
-                  href={`/branch/${decodedSubdomain}/news`}
-                  className="relative bg-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Newspaper className={`w-4 h-4 ${tc.text}`} />
-                      <span className="text-sm font-bold text-gray-800">최신 소식</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                  <div className="space-y-2">
-                    {news.slice(0, 2).map((item) => (
-                      <div key={item.id} className="flex items-center gap-3">
-                        <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${tc.bgLight} ${tc.text} flex-shrink-0`}>
-                          {item.category === 'notice' ? '공지' : item.category === 'event' ? '이벤트' : '소식'}
-                        </span>
-                        <p className="text-sm text-gray-700 truncate flex-1">{item.title}</p>
-                        <span className="text-[10px] text-gray-400 flex-shrink-0">
-                          {new Date(item.published_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Link>
-              )}
-
-              {/* 빠른 예약 버튼 */}
-              <Link
-                href="/reservation"
-                className={`relative ${tc.bg} ${tc.bgHover} text-white rounded-xl py-4 px-6 text-center font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2`}
-              >
-                <Calendar className="w-5 h-5" />
-                온라인 예약하기
-                <ArrowRight className="w-5 h-5" />
-              </Link>
             </div>
           </div>
         </div>
@@ -500,7 +438,7 @@ export default function BranchHomePage() {
                   <div className="p-4 md:p-5">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full ${tc.bgLight} ${tc.text}`}>
-                        {item.category === 'notice' ? '공지' : item.category === 'event' ? '이벤트' : item.category === 'media' ? '미디어' : '소식'}
+                        {getCategoryLabel(item.category)}
                       </span>
                       <span className="text-[10px] md:text-xs text-gray-400">
                         {new Date(item.published_at).toLocaleDateString('ko-KR')}
@@ -564,7 +502,7 @@ export default function BranchHomePage() {
                         <p className="text-xs md:text-sm text-gray-400">{review.vehicle_name}</p>
                       )}
                     </div>
-                    <span className="text-xs md:text-sm text-gray-400">{formatDate(review.created_at)}</span>
+                    <span className="text-xs md:text-sm text-gray-400">{formatDateShort(review.created_at)}</span>
                   </div>
                 </div>
               ))}
@@ -606,7 +544,7 @@ export default function BranchHomePage() {
                 <h3 className="text-base md:text-xl font-bold">보험 안내</h3>
               </div>
               <ul className="space-y-2 md:space-y-4">
-                {['대인배상: 무한', '대물배상: 2천만원 ~ 1억원', '자손/자차: 차량에 따라 상이', '만 26세 미만 추가요금'].map((item, index) => (
+                {INSURANCE_INFO.map((item, index) => (
                   <li key={index} className="flex items-start gap-2 md:gap-3">
                     <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-300 text-xs md:text-base">{item}</span>
@@ -623,7 +561,7 @@ export default function BranchHomePage() {
                 <h3 className="text-base md:text-xl font-bold">이용 안내</h3>
               </div>
               <ul className="space-y-2 md:space-y-4">
-                {['만 21세 이상, 면허 1년 이상', '본인 명의 신용카드 필수', '24시간 전 무료 취소', '연료 동일 반납'].map((item, index) => (
+                {RENTAL_REQUIREMENTS.map((item, index) => (
                   <li key={index} className="flex items-start gap-2 md:gap-3">
                     <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-300 text-xs md:text-base">{item}</span>
@@ -657,7 +595,7 @@ export default function BranchHomePage() {
             {branch.phone}
           </a>
           <p className="mt-4 md:mt-6 text-white/80 text-xs md:text-sm font-medium">
-            연중무휴 {branch.business_hours || '09:00 - 21:00'}
+            연중무휴 {branch.business_hours || BRANCH_DEFAULTS.businessHours}
           </p>
         </div>
       </section>

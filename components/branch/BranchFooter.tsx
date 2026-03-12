@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Phone, MapPin, Clock } from 'lucide-react'
 import type { ThemeType } from '@/lib/themes'
 import { themeClasses } from '@/lib/themes'
+import { BRANCH_DEFAULTS } from '@/lib/constants/company'
 
 interface BranchFooterProps {
   subdomain: string
@@ -35,8 +36,7 @@ export default function BranchFooter({ subdomain, branchName, branchPhone, branc
               <span className={`font-bold ${tc.text}`}>{branchName}</span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed">
-              깨끗하고 안전한 차량, 합리적인 가격으로<br />
-              고객님의 특별한 여정을 함께합니다.
+              {BRANCH_DEFAULTS.description}
             </p>
           </div>
 
@@ -60,7 +60,7 @@ export default function BranchFooter({ subdomain, branchName, branchPhone, branc
               )}
               <li className="flex items-center gap-2">
                 <Clock className={`w-4 h-4 ${tc.text} flex-shrink-0`} />
-                <span className="text-gray-400 text-sm">09:00 - 21:00 (연중무휴)</span>
+                <span className="text-gray-400 text-sm">{BRANCH_DEFAULTS.businessHours} (연중무휴)</span>
               </li>
             </ul>
           </div>

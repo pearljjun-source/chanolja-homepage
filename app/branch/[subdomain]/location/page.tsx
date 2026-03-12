@@ -10,8 +10,9 @@ import {
   Navigation
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch } from '@/types/database'
+import { BRANCH_DEFAULTS } from '@/lib/constants/company'
 
 export default function BranchLocationPage() {
   const params = useParams()
@@ -28,25 +29,9 @@ export default function BranchLocationPage() {
   const fetchBranchData = async () => {
     try {
       const supabase = createClient()
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
+      const branchData = await findBranch(supabase, subdomain)
 
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
-
-      setBranch(branchData || null)
+      setBranch(branchData)
     } catch (error) {
       console.error('Error fetching branch:', error)
     } finally {
@@ -144,7 +129,7 @@ export default function BranchLocationPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">영업시간</p>
-                      <p className="text-dark font-medium">연중무휴 09:00 - 21:00</p>
+                      <p className="text-dark font-medium">연중무휴 {BRANCH_DEFAULTS.businessHours}</p>
                     </div>
                   </li>
                 </ul>

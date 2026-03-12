@@ -6,8 +6,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch } from '@/types/database'
+import { HQ } from '@/lib/constants/company'
 
 export default function BranchAdminLoginPage() {
   const router = useRouter()
@@ -31,23 +32,7 @@ export default function BranchAdminLoginPage() {
   const fetchBranch = async () => {
     try {
       const supabase = createClient()
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (!allBranches) {
-        setPageLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (branchData) {
         setBranch(branchData)
@@ -223,7 +208,7 @@ export default function BranchAdminLoginPage() {
 
           {/* Help */}
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>계정 문의: 본사 041-522-7000</p>
+            <p>계정 문의: 본사 {HQ.phone}</p>
           </div>
         </div>
       </div>

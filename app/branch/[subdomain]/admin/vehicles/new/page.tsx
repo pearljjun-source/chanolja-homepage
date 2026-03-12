@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Save, Car, Upload, X, Plus, Shield, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import type { Branch } from '@/types/database'
 
@@ -125,25 +126,7 @@ export default function NewBranchVehiclePage() {
   const fetchBranch = async () => {
     try {
       const supabase = createClient()
-      const decodedSubdomain = decodeURIComponent(subdomain)
-
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('is_active', true)
-
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (branchData) {
         setBranch(branchData)

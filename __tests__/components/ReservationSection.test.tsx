@@ -1,5 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ToastProvider } from '@/components/ui/Toast'
+
+// 컴포넌트를 ToastProvider로 감싸는 헬퍼
+function renderWithToast(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 // Mock Supabase client
 const mockSelect = jest.fn()
@@ -39,7 +45,7 @@ describe('ReservationSection Component', () => {
 
   describe('Rendering', () => {
     it('should render the search section', () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       expect(screen.getByPlaceholderText('지역명, 주소 입력')).toBeInTheDocument()
       expect(screen.getByText('검색')).toBeInTheDocument()
@@ -47,20 +53,20 @@ describe('ReservationSection Component', () => {
     })
 
     it('should render the badge and title', () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       expect(screen.getByText('전국 120개 지점')).toBeInTheDocument()
       expect(screen.getByText('차량 예약')).toBeInTheDocument()
     })
 
     it('should render initial guidance text', () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       expect(screen.getByText(/위치를 입력하거나 현재 위치를 사용하여/)).toBeInTheDocument()
     })
 
     it('should have location input field', () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       const input = screen.getByPlaceholderText('지역명, 주소 입력')
       expect(input).toBeInTheDocument()
@@ -70,7 +76,7 @@ describe('ReservationSection Component', () => {
 
   describe('Filter functionality', () => {
     it('should toggle filter visibility on button click', async () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       const filterButton = screen.getByText('필터')
 
@@ -86,7 +92,7 @@ describe('ReservationSection Component', () => {
     })
 
     it('should have vehicle type filter options', async () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       fireEvent.click(screen.getByText('필터'))
 
@@ -100,7 +106,7 @@ describe('ReservationSection Component', () => {
   describe('Search functionality', () => {
     it('should update input value on change', async () => {
       const user = userEvent.setup()
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       const input = screen.getByPlaceholderText('지역명, 주소 입력')
       await user.type(input, '강남')
@@ -108,22 +114,19 @@ describe('ReservationSection Component', () => {
       expect(input).toHaveValue('강남')
     })
 
-    it('should show alert when searching with empty location', () => {
-      const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {})
-
-      render(<ReservationSection />)
+    it('should show toast when searching with empty location', () => {
+      renderWithToast(<ReservationSection />)
 
       const searchButton = screen.getByText('검색')
       fireEvent.click(searchButton)
 
-      expect(alertMock).toHaveBeenCalledWith('위치를 입력해주세요.')
-
-      alertMock.mockRestore()
+      // toast.info('위치를 입력해주세요.')가 호출되면 토스트 UI가 렌더링됨
+      expect(screen.getByText('위치를 입력해주세요.')).toBeInTheDocument()
     })
 
     it('should trigger search on Enter key press', async () => {
       const user = userEvent.setup()
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       const input = screen.getByPlaceholderText('지역명, 주소 입력')
       await user.type(input, '강남')
@@ -141,7 +144,7 @@ describe('ReservationSection Component', () => {
 
   describe('Current location feature', () => {
     it('should have current location button', () => {
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       // Check for the button (text differs on mobile/desktop)
       const buttons = screen.getAllByRole('button')
@@ -152,9 +155,7 @@ describe('ReservationSection Component', () => {
       expect(locationButton).toBeInTheDocument()
     })
 
-    it('should show alert when geolocation is not supported', () => {
-      const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {})
-
+    it('should show toast when geolocation is not supported', () => {
       // Mock geolocation as undefined
       const originalGeolocation = navigator.geolocation
       Object.defineProperty(navigator, 'geolocation', {
@@ -162,7 +163,7 @@ describe('ReservationSection Component', () => {
         writable: true,
       })
 
-      render(<ReservationSection />)
+      renderWithToast(<ReservationSection />)
 
       const buttons = screen.getAllByRole('button')
       const locationButton = buttons.find(btn =>
@@ -171,7 +172,8 @@ describe('ReservationSection Component', () => {
 
       if (locationButton) {
         fireEvent.click(locationButton)
-        expect(alertMock).toHaveBeenCalledWith('브라우저가 위치 서비스를 지원하지 않습니다.')
+        // toast.warning('브라우저가 위치 서비스를 지원하지 않습니다.')가 호출됨
+        expect(screen.getByText('브라우저가 위치 서비스를 지원하지 않습니다.')).toBeInTheDocument()
       }
 
       // Restore
@@ -179,7 +181,6 @@ describe('ReservationSection Component', () => {
         value: originalGeolocation,
         writable: true,
       })
-      alertMock.mockRestore()
     })
   })
 })

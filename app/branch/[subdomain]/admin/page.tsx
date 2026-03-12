@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch, Vehicle, Reservation } from '@/types/database'
 
 interface DashboardStats {
@@ -53,26 +54,9 @@ export default function BranchAdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const supabase = createClient()
-      const decodedSubdomain = decodeURIComponent(subdomain)
 
-      // 지점 정보 조회 - 모든 지점 가져와서 클라이언트에서 필터링
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('is_active', true)
-
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      // 지점 정보 조회
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)

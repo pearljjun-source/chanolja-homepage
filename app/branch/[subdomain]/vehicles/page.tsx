@@ -14,7 +14,7 @@ import {
   ShieldCheck
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleWithInsurance extends Omit<Vehicle, 'insurance'> {
@@ -67,23 +67,7 @@ export default function BranchVehiclesPage() {
   const fetchBranchData = async () => {
     try {
       const supabase = createClient()
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)

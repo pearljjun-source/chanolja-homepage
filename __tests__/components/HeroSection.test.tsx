@@ -1,4 +1,11 @@
 import { render, screen } from '@testing-library/react'
+
+// Hero3DScene은 @react-three/fiber Canvas를 사용하며 jsdom에 ResizeObserver가 없어 모킹 필요
+jest.mock('@/components/home/Hero3DScene', () => ({
+  __esModule: true,
+  default: () => <div data-testid="hero-3d-scene" />,
+}))
+
 import HeroSection from '@/components/home/HeroSection'
 
 describe('HeroSection Component', () => {
@@ -20,9 +27,10 @@ describe('HeroSection Component', () => {
     expect(screen.getByText(/성장합니다/)).toBeInTheDocument()
   })
 
-  it('renders the description text', () => {
+  it('renders the proof statement text', () => {
     render(<HeroSection />)
-    expect(screen.getByText(/27년 노하우와 전국 120개 지점 네트워크/)).toBeInTheDocument()
+    expect(screen.getByText(/27년,/)).toBeInTheDocument()
+    expect(screen.getAllByText(/120개 지점/).length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders CTA buttons with correct links', () => {

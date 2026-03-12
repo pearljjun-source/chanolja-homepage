@@ -14,15 +14,9 @@ import {
   Upload
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { News, Branch } from '@/types/database'
-
-const categoryLabels: Record<string, string> = {
-  news: '소식',
-  notice: '공지',
-  media: '미디어',
-  event: '이벤트',
-}
+import { NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
 
 export default function BranchNewsAdminPage() {
   const params = useParams()
@@ -54,16 +48,7 @@ export default function BranchNewsAdminPage() {
       const supabase = createClient()
 
       // 지점 조회
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (!allBranches) return
-
-      let found = allBranches.find(b => b.subdomain === subdomain)
-      if (!found) found = allBranches.find(b => b.name === subdomain)
-      if (!found) found = allBranches.find(b => b.name.includes(subdomain))
+      const found = await findBranch(supabase, subdomain)
       if (!found) return
 
       setBranch(found)

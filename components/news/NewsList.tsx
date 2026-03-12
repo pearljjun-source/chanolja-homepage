@@ -6,28 +6,7 @@ import Image from 'next/image'
 import { Calendar, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { News } from '@/types/database'
-
-const categories = [
-  { value: 'all', label: '전체' },
-  { value: 'news', label: '뉴스' },
-  { value: 'notice', label: '공지사항' },
-  { value: 'media', label: '미디어' },
-  { value: 'event', label: '이벤트' },
-]
-
-const categoryColors: Record<string, string> = {
-  news: 'bg-blue-100 text-blue-600',
-  notice: 'bg-red-100 text-red-600',
-  media: 'bg-purple-100 text-purple-600',
-  event: 'bg-orange-100 text-orange-600',
-}
-
-const categoryLabels: Record<string, string> = {
-  news: '뉴스',
-  notice: '공지사항',
-  media: '미디어',
-  event: '이벤트',
-}
+import { NEWS_CATEGORIES as categories, NEWS_CATEGORY_COLORS as categoryColors, NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
 
 export default function NewsList() {
   const [selectedCategory, setSelectedCategory] = useState('all')

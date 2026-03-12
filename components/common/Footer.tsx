@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, MapPin, Clock, Youtube, Instagram } from 'lucide-react'
+import { HQ } from '@/lib/constants/company'
 
 export default function Footer() {
   return (
@@ -22,14 +23,14 @@ export default function Footer() {
               />
             </Link>
             <p className="text-gray-300 mb-4 lg:mb-6 leading-relaxed text-sm lg:text-base">
-              27년 자동차 업계 경력과 전국 120개 지점 운영 노하우로
+              {HQ.experience}과 {HQ.branchCount} 운영 노하우로
               성공적인 렌트카 창업을 함께합니다.
             </p>
             <p className="text-xl lg:text-2xl font-bold text-primary mb-1">
-              GROW TOGETHER
+              {HQ.slogan}
             </p>
             <p className="text-gray-400 text-sm lg:text-base">
-              우리 모두가 함께 성장합니다
+              {HQ.sloganKo}
             </p>
           </div>
 
@@ -68,8 +69,8 @@ export default function Footer() {
                 <Phone className="w-4 h-4 lg:w-5 lg:h-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-semibold text-sm lg:text-base">대표전화</p>
-                  <a href="tel:041-522-7000" className="text-gray-400 hover:text-primary transition-colors text-sm lg:text-base">
-                    041-522-7000
+                  <a href={`tel:${HQ.phone}`} className="text-gray-400 hover:text-primary transition-colors text-sm lg:text-base">
+                    {HQ.phone}
                   </a>
                 </div>
               </li>
@@ -77,7 +78,7 @@ export default function Footer() {
                 <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-semibold text-sm lg:text-base">운영시간</p>
-                  <p className="text-gray-400 text-sm lg:text-base">월~금 09:00 - 18:00</p>
+                  <p className="text-gray-400 text-sm lg:text-base">{HQ.operatingHours}</p>
                 </div>
               </li>
               <li className="flex items-start gap-2 lg:gap-3">
@@ -85,7 +86,7 @@ export default function Footer() {
                 <div>
                   <p className="font-semibold text-sm lg:text-base">본사 위치</p>
                   <p className="text-gray-400 text-sm lg:text-base">
-                    충남 천안시 동남구 충절로 224
+                    {HQ.address}
                   </p>
                 </div>
               </li>
@@ -145,14 +146,14 @@ export default function Footer() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
             <div className="space-y-0.5 lg:space-y-1">
               <p>
-                <span className="font-semibold text-gray-400">지에스렌트카(주)</span>
+                <span className="font-semibold text-gray-400">{HQ.companyName}</span>
                 <span className="mx-2">|</span>
-                <span>대표 전은태</span>
+                <span>대표 {HQ.ceo}</span>
               </p>
-              <p>사업자등록번호: 312-81-96863</p>
+              <p>사업자등록번호: {HQ.businessNumber}</p>
             </div>
             <div className="flex items-center gap-3 lg:gap-4 text-gray-500">
-              <p>&copy; {new Date().getFullYear()} CHANOLJA</p>
+              <p>&copy; {new Date().getFullYear()} {HQ.brandNameEn}</p>
               <Link href="/login" className="text-gray-500 hover:text-primary transition-colors">
                 관리자
               </Link>

@@ -21,7 +21,7 @@ import {
   Shield
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch, Vehicle } from '@/types/database'
 
 const fuelTypeLabels: Record<string, string> = {
@@ -72,22 +72,9 @@ export default function VehicleDetailPage() {
         } else {
           // 없으면 별도로 조회
           const supabase = createClient()
-          const { data: allBranches } = await supabase
-            .from('branches')
-            .select(BRANCHES_PUBLIC_COLUMNS)
-            .eq('is_active', true)
-
-          if (allBranches) {
-            let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-            if (!branchData) {
-              branchData = allBranches.find(b => b.name === decodedSubdomain)
-            }
-            if (!branchData) {
-              branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-            }
-            if (branchData) {
-              setBranch(branchData)
-            }
+          const branchData = await findBranch(supabase, subdomain)
+          if (branchData) {
+            setBranch(branchData)
           }
         }
       } else {

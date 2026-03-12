@@ -17,9 +17,11 @@ import {
   Trash2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Vehicle, VehicleInsurance } from '@/types/database'
+import { formatDateFull } from '@/lib/utils'
 
 export default function BranchAdminInsurancesPage() {
   const toast = useToast()
@@ -67,23 +69,7 @@ export default function BranchAdminInsurancesPage() {
       const supabase = createClient()
 
       // 지점 조회
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('is_active', true)
-
-      if (!allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)
@@ -275,11 +261,6 @@ export default function BranchAdminInsurancesPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
-  }
-
   const formatCurrency = (amount: number) => {
     if (amount >= 100000000) {
       return `${amount / 100000000}억원`
@@ -417,7 +398,7 @@ export default function BranchAdminInsurancesPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {formatDate(insurance.start_date)} ~ {formatDate(insurance.end_date)}
+                        {formatDateFull(insurance.start_date)} ~ {formatDateFull(insurance.end_date)}
                       </span>
                     </div>
                     <div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { getTheme } from '@/lib/themes'
 import BranchHeader from '@/components/branch/BranchHeader'
 import BranchFooter from '@/components/branch/BranchFooter'
@@ -27,17 +27,7 @@ export default function BranchLayoutClient({ subdomain, children }: Props) {
 
     const fetchBranch = async () => {
       const supabase = createClient()
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (!allBranches) return
-
-      let found = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!found) found = allBranches.find(b => b.name === decodedSubdomain)
-      if (!found) found = allBranches.find(b => b.name.includes(decodedSubdomain))
-
+      const found = await findBranch(supabase, subdomain)
       if (found) setBranch(found)
     }
 

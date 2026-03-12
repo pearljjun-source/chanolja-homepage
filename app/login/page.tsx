@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { HQ } from '@/lib/constants/company'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -141,7 +142,7 @@ export default function LoginPage() {
 
         {/* Admin Info */}
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>관리자 계정 문의: 041-522-7000</p>
+          <p>관리자 계정 문의: {HQ.phone}</p>
         </div>
       </div>
     </div>

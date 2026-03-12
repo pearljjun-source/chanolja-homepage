@@ -14,9 +14,11 @@ import {
   Car
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Review } from '@/types/database'
+import { formatDateFull } from '@/lib/utils'
 
 export default function BranchAdminReviewsPage() {
   const toast = useToast()
@@ -39,23 +41,7 @@ export default function BranchAdminReviewsPage() {
       const supabase = createClient()
 
       // 지점 조회
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('is_active', true)
-
-      if (!allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)
@@ -142,11 +128,6 @@ export default function BranchAdminReviewsPage() {
       console.error('Error toggling visibility:', error)
       toast.error('처리 중 오류가 발생했습니다.')
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
   }
 
   const filteredReviews = reviews.filter(review => {
@@ -281,7 +262,7 @@ export default function BranchAdminReviewsPage() {
                         {review.vehicle_name}
                       </span>
                     )}
-                    <span>{formatDate(review.created_at)}</span>
+                    <span>{formatDateFull(review.created_at)}</span>
                   </div>
                 </div>
 

@@ -6,16 +6,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Newspaper, Calendar, ChevronRight, Tag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { News, Branch } from '@/types/database'
 import { getTheme, themeClasses } from '@/lib/themes'
-
-const categoryLabels: Record<string, string> = {
-  news: '소식',
-  notice: '공지',
-  media: '미디어',
-  event: '이벤트',
-}
+import { NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
 
 export default function BranchNewsPage() {
   const params = useParams()
@@ -35,16 +29,7 @@ export default function BranchNewsPage() {
     try {
       const supabase = createClient()
 
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (!allBranches) return
-
-      let found = allBranches.find(b => b.subdomain === subdomain)
-      if (!found) found = allBranches.find(b => b.name === subdomain)
-      if (!found) found = allBranches.find(b => b.name.includes(subdomain))
+      const found = await findBranch(supabase, subdomain)
       if (!found) return
 
       setBranch(found)

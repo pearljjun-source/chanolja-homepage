@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { PhoneCall, ArrowRight, MessageCircle } from 'lucide-react'
+import { HQ } from '@/lib/constants/company'
 
 export default function CTASection() {
   return (
@@ -28,13 +29,13 @@ export default function CTASection() {
               <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
-              href="tel:041-522-7000"
+              href={`tel:${HQ.phone}`}
               className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 lg:gap-3 px-6 py-3 lg:px-8 lg:py-4 bg-white/15 backdrop-blur-sm text-white font-bold rounded-xl border-2 border-white/30 hover:bg-white/25 hover:border-white/50 transition-all duration-300"
             >
               <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <PhoneCall className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
-              <span className="text-base lg:text-lg tracking-tight">041-522-7000</span>
+              <span className="text-base lg:text-lg tracking-tight">{HQ.phone}</span>
             </a>
           </div>
 

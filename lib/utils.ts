@@ -16,3 +16,21 @@ export function formatDate(date: string | Date) {
 export function formatPhone(phone: string) {
   return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
 }
+
+/** 날짜 포맷 - YYYY.MM */
+export function formatDateShort(date: string | Date) {
+  const d = new Date(date)
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** 날짜 포맷 - YYYY.MM.DD */
+export function formatDateFull(date: string | Date) {
+  const d = new Date(date)
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** 이름 마스킹 (김철수 → 김**) */
+export function maskName(name: string) {
+  if (name.length <= 1) return name
+  return name[0] + '*'.repeat(name.length - 1)
+}

@@ -7,13 +7,7 @@ import Image from 'next/image'
 import { ArrowLeft, Save, Upload, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
-
-const categories = [
-  { value: 'news', label: '뉴스' },
-  { value: 'notice', label: '공지사항' },
-  { value: 'media', label: '미디어' },
-  { value: 'event', label: '이벤트' },
-]
+import { NEWS_CATEGORY_OPTIONS as categories } from '@/lib/constants/categories'
 
 export default function NewNewsPage() {
   const toast = useToast()

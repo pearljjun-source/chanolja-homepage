@@ -66,7 +66,7 @@ export default function BranchHeader({ subdomain, branchName, branchPhone, theme
                 alt="차놀자"
                 width={100}
                 height={30}
-                className="h-7 md:h-8 w-auto"
+                className="h-9 md:h-10 w-auto"
               />
               <span className={`text-sm md:text-base font-bold ${tc.text} hidden sm:inline`}>
                 {branchName}
@@ -146,14 +146,6 @@ export default function BranchHeader({ subdomain, branchName, branchPhone, theme
                   <span className="font-semibold text-[15px]">{item.name}</span>
                 </Link>
               ))}
-              <Link
-                href="/reservation"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center justify-center gap-2 mt-3 py-3 ${tc.bg} text-white rounded-lg font-semibold text-sm`}
-              >
-                <CalendarCheck className="w-4 h-4" />
-                예약하기
-              </Link>
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Send, Phone, MapPin, Clock } from 'lucide-react'
+import { HQ } from '@/lib/constants/company'
 
 const inquiryTypes = [
   { value: 'branch', label: '지점 개설' },
@@ -131,8 +132,8 @@ export default function InquirySection() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1">대표전화</p>
-                  <a href="tel:041-522-7000" className="text-white/80 hover:text-white">
-                    041-522-7000~1
+                  <a href={`tel:${HQ.phone}`} className="text-white/80 hover:text-white">
+                    {HQ.phone}~1
                   </a>
                 </div>
               </div>

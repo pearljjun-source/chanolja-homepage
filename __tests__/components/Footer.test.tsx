@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import Footer from '@/components/common/Footer'
+import { HQ } from '@/lib/constants/company'
 
 describe('Footer Component', () => {
   it('renders the logo', () => {
@@ -10,14 +11,14 @@ describe('Footer Component', () => {
 
   it('renders company description', () => {
     render(<Footer />)
-    expect(screen.getByText(/27년 자동차 업계 경력/)).toBeInTheDocument()
-    expect(screen.getByText(/120개 지점/)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(HQ.experience))).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(HQ.branchCount))).toBeInTheDocument()
   })
 
   it('renders GROW TOGETHER slogan', () => {
     render(<Footer />)
-    expect(screen.getByText('GROW TOGETHER')).toBeInTheDocument()
-    expect(screen.getByText('우리 모두가 함께 성장합니다')).toBeInTheDocument()
+    expect(screen.getByText(HQ.slogan)).toBeInTheDocument()
+    expect(screen.getByText(HQ.sloganKo)).toBeInTheDocument()
   })
 
   it('renders quick links section', () => {
@@ -41,11 +42,11 @@ describe('Footer Component', () => {
     render(<Footer />)
     expect(screen.getByText('연락처')).toBeInTheDocument()
     expect(screen.getByText('대표전화')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '041-522-7000' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: HQ.phone })).toBeInTheDocument()
     expect(screen.getByText('운영시간')).toBeInTheDocument()
-    expect(screen.getByText('월~금 09:00 - 18:00')).toBeInTheDocument()
+    expect(screen.getByText(HQ.operatingHours)).toBeInTheDocument()
     expect(screen.getByText('본사 위치')).toBeInTheDocument()
-    expect(screen.getByText('충남 천안시 동남구 충절로 224')).toBeInTheDocument()
+    expect(screen.getByText(HQ.address)).toBeInTheDocument()
   })
 
   it('renders social media links', () => {
@@ -69,15 +70,15 @@ describe('Footer Component', () => {
 
   it('renders company legal information', () => {
     render(<Footer />)
-    expect(screen.getByText('지에스렌트카(주)')).toBeInTheDocument()
-    expect(screen.getByText('대표 전은태')).toBeInTheDocument()
-    expect(screen.getByText('사업자등록번호: 312-81-96863')).toBeInTheDocument()
+    expect(screen.getByText(HQ.companyName)).toBeInTheDocument()
+    expect(screen.getByText(`대표 ${HQ.ceo}`)).toBeInTheDocument()
+    expect(screen.getByText(`사업자등록번호: ${HQ.businessNumber}`)).toBeInTheDocument()
   })
 
   it('renders copyright with current year', () => {
     render(<Footer />)
     const currentYear = new Date().getFullYear()
-    expect(screen.getByText(`© ${currentYear} CHANOLJA`)).toBeInTheDocument()
+    expect(screen.getByText(`© ${currentYear} ${HQ.brandNameEn}`)).toBeInTheDocument()
   })
 
   it('renders admin link', () => {
@@ -88,7 +89,7 @@ describe('Footer Component', () => {
 
   it('phone link has tel: protocol', () => {
     render(<Footer />)
-    const phoneLink = screen.getByRole('link', { name: '041-522-7000' })
-    expect(phoneLink).toHaveAttribute('href', 'tel:041-522-7000')
+    const phoneLink = screen.getByRole('link', { name: HQ.phone })
+    expect(phoneLink).toHaveAttribute('href', `tel:${HQ.phone}`)
   })
 })

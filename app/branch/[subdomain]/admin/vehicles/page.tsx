@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
 import type { Branch, Vehicle } from '@/types/database'
@@ -95,26 +96,9 @@ export default function BranchVehiclesPage() {
   const fetchData = async () => {
     try {
       const supabase = createClient()
-      const decodedSubdomain = decodeURIComponent(subdomain)
 
       // 지점 정보 조회
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('is_active', true)
-
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)

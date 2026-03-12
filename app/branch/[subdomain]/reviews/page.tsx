@@ -13,8 +13,9 @@ import {
   Quote
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch, Vehicle, Review } from '@/types/database'
+import { formatDateShort, maskName } from '@/lib/utils'
 
 export default function ReviewsPage() {
   const params = useParams()
@@ -45,23 +46,7 @@ export default function ReviewsPage() {
       const supabase = createClient()
 
       // 지점 정보 조회
-      const { data: allBranches } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
-
-      if (!allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
+      const branchData = await findBranch(supabase, subdomain)
 
       if (!branchData) {
         setLoading(false)
@@ -166,16 +151,6 @@ export default function ReviewsPage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}`
-  }
-
-  const maskName = (name: string) => {
-    if (name.length <= 1) return name
-    return name[0] + '*'.repeat(name.length - 1)
   }
 
   if (loading || !branch) {
@@ -397,7 +372,7 @@ export default function ReviewsPage() {
                       )}
                     </div>
                     <span className="text-sm text-gray-400">
-                      {formatDate(review.created_at)}
+                      {formatDateShort(review.created_at)}
                     </span>
                   </div>
                 </div>

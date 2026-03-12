@@ -14,8 +14,9 @@ import {
   Building2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
+import { findBranch } from '@/lib/supabase/branch-lookup'
 import type { Branch } from '@/types/database'
+import { BRANCH_DEFAULTS } from '@/lib/constants/company'
 
 export default function BranchAboutPage() {
   const params = useParams()
@@ -33,25 +34,9 @@ export default function BranchAboutPage() {
   const fetchBranchData = async () => {
     try {
       const supabase = createClient()
-      const { data: allBranches, error } = await supabase
-        .from('branches')
-        .select(BRANCHES_PUBLIC_COLUMNS)
-        .eq('is_active', true)
+      const branchData = await findBranch(supabase, subdomain)
 
-      if (error || !allBranches) {
-        setLoading(false)
-        return
-      }
-
-      let branchData = allBranches.find(b => b.subdomain === decodedSubdomain)
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name === decodedSubdomain)
-      }
-      if (!branchData) {
-        branchData = allBranches.find(b => b.name.includes(decodedSubdomain))
-      }
-
-      setBranch(branchData || null)
+      setBranch(branchData)
 
       // 지점 이미지 로드
       if (branchData) {
@@ -185,7 +170,7 @@ export default function BranchAboutPage() {
                 <Clock className="w-6 h-6 text-primary" />
               </div>
               <h4 className="font-bold text-dark mb-2">영업시간</h4>
-              <p className="text-gray-600">연중무휴 09:00 - 21:00</p>
+              <p className="text-gray-600">연중무휴 {BRANCH_DEFAULTS.businessHours}</p>
             </div>
           </div>
         </div>
