@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   LogOut,
   MessageSquare,
-  Shield
+  Shield,
+  Newspaper
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
@@ -26,6 +27,7 @@ const navigation = [
   { name: '보험 관리', href: '/insurances', icon: Shield },
   { name: '예약 관리', href: '/reservations', icon: Calendar },
   { name: '후기 관리', href: '/reviews', icon: MessageSquare },
+  { name: '뉴스 관리', href: '/news', icon: Newspaper },
   { name: '설정', href: '/settings', icon: Settings },
 ]
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import BranchLayoutClient from './BranchLayoutClient'
 
 interface Props {
   params: { subdomain: string }
@@ -76,6 +77,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function BranchLayout({ children }: Props) {
-  return children
+export default function BranchLayout({ children, params }: Props) {
+  return (
+    <BranchLayoutClient subdomain={params.subdomain}>
+      {children}
+    </BranchLayoutClient>
+  )
 }

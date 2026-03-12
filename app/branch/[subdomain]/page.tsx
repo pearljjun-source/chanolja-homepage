@@ -15,15 +15,15 @@ import {
   FileText,
   CheckCircle,
   Quote,
-  Sparkles,
   Users,
   Award,
   ArrowRight,
-  Play
+  Newspaper,
+  Calendar
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
-import type { Branch, Vehicle, Review } from '@/types/database'
+import type { Branch, Vehicle, Review, News } from '@/types/database'
 import { getTheme, themeClasses, type ThemeType } from '@/lib/themes'
 
 export default function BranchHomePage() {
@@ -34,6 +34,7 @@ export default function BranchHomePage() {
   const [branch, setBranch] = useState<Branch | null>(null)
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
+  const [news, setNews] = useState<News[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -95,6 +96,19 @@ export default function BranchHomePage() {
       if (reviewsData) {
         setReviews(reviewsData)
       }
+
+      // 지점 뉴스 조회
+      const { data: newsData } = await supabase
+        .from('news')
+        .select('*')
+        .eq('branch_id', branchData.id)
+        .eq('is_published', true)
+        .order('published_at', { ascending: false })
+        .limit(3)
+
+      if (newsData) {
+        setNews(newsData)
+      }
     } catch (error) {
       console.error('Error fetching branch data:', error)
     } finally {
@@ -122,11 +136,21 @@ export default function BranchHomePage() {
   const theme = getTheme(branch.theme)
   const tc = themeClasses[theme]
 
+  // 실제 평균 평점 계산
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : '-'
+
+  // 최저가 차량
+  const lowestPrice = vehicles.length > 0
+    ? Math.min(...vehicles.map(v => v.price_per_day))
+    : 0
+
   return (
     <>
-      {/* Hero Section - 모바일 최적화 */}
+      {/* Hero Section */}
       <section className="relative bg-white min-h-[60vh] md:min-h-[70vh] flex items-center overflow-hidden">
-        {/* 배경 패턴 - 테마별 색상 */}
+        {/* 배경 패턴 */}
         <div className="absolute inset-0 opacity-30">
           <div className={`absolute top-10 left-5 md:top-20 md:left-10 w-48 md:w-72 h-48 md:h-72 ${tc.bg}/20 rounded-full blur-3xl`} />
           <div className={`absolute bottom-10 right-5 md:bottom-20 md:right-10 w-64 md:w-96 h-64 md:h-96 ${tc.accentBg} rounded-full blur-3xl`} />
@@ -158,7 +182,7 @@ export default function BranchHomePage() {
                 {branch.description || '깨끗하고 안전한 차량, 합리적인 가격으로 고객님의 특별한 여정을 함께합니다.'}
               </p>
 
-              {/* 모바일 CTA 버튼 */}
+              {/* CTA 버튼 */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10">
                 <a
                   href={`tel:${branch.phone}`}
@@ -177,7 +201,7 @@ export default function BranchHomePage() {
                 </Link>
               </div>
 
-              {/* 빠른 정보 - 모바일 최적화 */}
+              {/* 빠른 정보 */}
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
                   <div className={`w-8 h-8 md:w-10 md:h-10 ${tc.bgLight} rounded-lg flex items-center justify-center`}>
@@ -194,68 +218,131 @@ export default function BranchHomePage() {
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] md:text-xs text-gray-500 font-semibold">영업시간</p>
-                    <p className="text-xs md:text-sm font-bold text-gray-800">09:00 - 21:00</p>
+                    <p className="text-xs md:text-sm font-bold text-gray-800">{branch.business_hours || '09:00 - 21:00'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 우측 카드 영역 - 데스크톱 전용 */}
-            <div className="hidden lg:block relative">
+            {/* 우측 Quick Info Hub - 데스크톱 전용 */}
+            <div className="hidden lg:flex flex-col gap-4 relative">
               <div className={`absolute -top-10 -right-10 w-64 h-64 ${tc.bg}/30 rounded-full blur-3xl`} />
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
-                <div className="text-center mb-6">
-                  <div className={`inline-flex items-center justify-center gap-2 px-4 py-1.5 ${tc.bgLight} rounded-full mb-3`}>
-                    <Phone className={`w-4 h-4 ${tc.text}`} />
-                    <span className={`text-sm ${tc.text} font-semibold`}>전화 문의</span>
+
+              {/* 전화 문의 카드 */}
+              <a href={`tel:${branch.phone}`} className="relative bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-shadow group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold mb-1">전화 문의</p>
+                    <p className="text-2xl font-extrabold tracking-tight text-gray-800 group-hover:text-gray-900">
+                      {branch.phone}
+                    </p>
                   </div>
-                  <p className="text-3xl font-extrabold tracking-tight text-gray-800">
-                    {branch.phone}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
-                    <p className={`text-2xl font-bold ${tc.text}`}>{vehicles.length}+</p>
-                    <p className="text-xs text-gray-600 font-semibold">보유 차량</p>
-                  </div>
-                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
-                    <p className={`text-2xl font-bold ${tc.text}`}>4.8</p>
-                    <p className="text-xs text-gray-600 font-semibold">평점</p>
-                  </div>
-                  <div className={`bg-gradient-to-br ${tc.bgLight} rounded-xl p-4`}>
-                    <p className={`text-2xl font-bold ${tc.text}`}>24h</p>
-                    <p className="text-xs text-gray-600 font-semibold">지원</p>
+                  <div className={`w-12 h-12 ${tc.bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <Phone className="w-6 h-6 text-white" />
                   </div>
                 </div>
+              </a>
+
+              {/* 클릭 가능한 통계 카드 그리드 */}
+              <div className="grid grid-cols-3 gap-3">
+                <Link
+                  href={`/branch/${decodedSubdomain}/vehicles`}
+                  className={`relative bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 group text-center`}
+                >
+                  <Car className={`w-6 h-6 ${tc.text} mx-auto mb-2`} />
+                  <p className={`text-2xl font-bold ${tc.text}`}>{vehicles.length}+</p>
+                  <p className="text-[11px] text-gray-500 font-semibold">보유 차량</p>
+                  {lowestPrice > 0 && (
+                    <p className="text-[10px] text-gray-400 mt-0.5">{(lowestPrice / 10000).toFixed(0)}만원~</p>
+                  )}
+                </Link>
+
+                <Link
+                  href={`/branch/${decodedSubdomain}/reviews`}
+                  className="relative bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 group text-center"
+                >
+                  <Star className={`w-6 h-6 ${tc.text} mx-auto mb-2`} />
+                  <p className={`text-2xl font-bold ${tc.text}`}>{avgRating}</p>
+                  <p className="text-[11px] text-gray-500 font-semibold">고객 평점</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">후기 {reviews.length}건</p>
+                </Link>
+
+                <Link
+                  href={`/branch/${decodedSubdomain}/location`}
+                  className="relative bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 group text-center"
+                >
+                  <MapPin className={`w-6 h-6 ${tc.text} mx-auto mb-2`} />
+                  <p className={`text-lg font-bold text-gray-800`}>{branch.region}</p>
+                  <p className="text-[11px] text-gray-500 font-semibold">오시는 길</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">지도 보기</p>
+                </Link>
               </div>
+
+              {/* 최신 뉴스 미리보기 */}
+              {news.length > 0 && (
+                <Link
+                  href={`/branch/${decodedSubdomain}/news`}
+                  className="relative bg-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Newspaper className={`w-4 h-4 ${tc.text}`} />
+                      <span className="text-sm font-bold text-gray-800">최신 소식</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                  <div className="space-y-2">
+                    {news.slice(0, 2).map((item) => (
+                      <div key={item.id} className="flex items-center gap-3">
+                        <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${tc.bgLight} ${tc.text} flex-shrink-0`}>
+                          {item.category === 'notice' ? '공지' : item.category === 'event' ? '이벤트' : '소식'}
+                        </span>
+                        <p className="text-sm text-gray-700 truncate flex-1">{item.title}</p>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0">
+                          {new Date(item.published_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Link>
+              )}
+
+              {/* 빠른 예약 버튼 */}
+              <Link
+                href="/reservation"
+                className={`relative ${tc.bg} ${tc.bgHover} text-white rounded-xl py-4 px-6 text-center font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2`}
+              >
+                <Calendar className="w-5 h-5" />
+                온라인 예약하기
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 모바일 통계 - 개선 */}
+      {/* 모바일 통계 - 클릭 가능 */}
       <section className="lg:hidden py-4 bg-white border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="py-3 bg-gray-50 rounded-xl">
+            <Link href={`/branch/${decodedSubdomain}/vehicles`} className="py-3 bg-gray-50 rounded-xl active:bg-gray-100">
               <p className={`text-xl font-bold ${tc.text}`}>{vehicles.length}+</p>
               <p className="text-[10px] text-gray-500 font-medium">보유 차량</p>
-            </div>
-            <div className="py-3 bg-gray-50 rounded-xl">
-              <p className={`text-xl font-bold ${tc.text}`}>4.8</p>
+            </Link>
+            <Link href={`/branch/${decodedSubdomain}/reviews`} className="py-3 bg-gray-50 rounded-xl active:bg-gray-100">
+              <p className={`text-xl font-bold ${tc.text}`}>{avgRating}</p>
               <p className="text-[10px] text-gray-500 font-medium">고객 평점</p>
-            </div>
-            <div className="py-3 bg-gray-50 rounded-xl">
-              <p className={`text-xl font-bold ${tc.text}`}>24h</p>
-              <p className="text-[10px] text-gray-500 font-medium">고객 지원</p>
-            </div>
+            </Link>
+            <Link href={`/branch/${decodedSubdomain}/location`} className="py-3 bg-gray-50 rounded-xl active:bg-gray-100">
+              <p className={`text-base font-bold text-gray-800`}>{branch.region}</p>
+              <p className="text-[10px] text-gray-500 font-medium">오시는 길</p>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 서비스 특징 - 모바일 최적화 */}
+      {/* 서비스 특징 */}
       <section className={`py-12 md:py-20 ${tc.bg} relative overflow-hidden`}>
-        {/* 배경 장식 */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-sky-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
@@ -276,30 +363,10 @@ export default function BranchHomePage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
             {[
-              {
-                icon: Car,
-                title: '다양한 차량',
-                description: '경차부터 SUV까지',
-                color: 'bg-blue-500'
-              },
-              {
-                icon: Shield,
-                title: '완벽한 보험',
-                description: '대인/대물/자차 보장',
-                color: 'bg-green-500'
-              },
-              {
-                icon: Award,
-                title: '품질 보증',
-                description: '깨끗한 차량 제공',
-                color: 'bg-purple-500'
-              },
-              {
-                icon: Users,
-                title: '친절한 서비스',
-                description: '24시간 고객 지원',
-                color: 'bg-orange-500'
-              }
+              { icon: Car, title: '다양한 차량', description: '경차부터 SUV까지', color: 'bg-blue-500' },
+              { icon: Shield, title: '완벽한 보험', description: '대인/대물/자차 보장', color: 'bg-green-500' },
+              { icon: Award, title: '품질 보증', description: '깨끗한 차량 제공', color: 'bg-purple-500' },
+              { icon: Users, title: '친절한 서비스', description: '24시간 고객 지원', color: 'bg-orange-500' }
             ].map((item, index) => (
               <div
                 key={index}
@@ -316,9 +383,9 @@ export default function BranchHomePage() {
         </div>
       </section>
 
-      {/* 인기 차량 - 모바일 최적화 */}
+      {/* 인기 차량 */}
       {vehicles.length > 0 && (
-        <section className="py-10 md:py-20 bg-gray-50 pb-24 md:pb-20">
+        <section className="py-10 md:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-end justify-between gap-4 mb-6 md:mb-12">
               <div>
@@ -363,7 +430,7 @@ export default function BranchHomePage() {
                   </div>
                   <div className="p-3 md:p-6">
                     <div className="mb-2 md:mb-3">
-                      <h4 className={`text-sm md:text-lg font-bold text-gray-900 group-hover:${tc.text} transition-colors truncate`}>
+                      <h4 className="text-sm md:text-lg font-bold text-gray-900 truncate">
                         {vehicle.name}
                       </h4>
                       <p className="text-xs md:text-sm text-gray-500 truncate">
@@ -378,8 +445,8 @@ export default function BranchHomePage() {
                           <span className="text-xs md:text-sm font-normal text-gray-500">원</span>
                         </p>
                       </div>
-                      <div className={`hidden md:flex w-10 h-10 ${tc.bgLight} rounded-full items-center justify-center group-hover:${tc.bg} transition-colors`}>
-                        <ArrowRight className={`w-5 h-5 ${tc.text} group-hover:text-white transition-colors`} />
+                      <div className={`hidden md:flex w-10 h-10 ${tc.bgLight} rounded-full items-center justify-center`}>
+                        <ArrowRight className={`w-5 h-5 ${tc.text}`} />
                       </div>
                     </div>
                   </div>
@@ -390,8 +457,69 @@ export default function BranchHomePage() {
         </section>
       )}
 
-      {/* 고객 후기 - 모바일 최적화 */}
-      <section className="py-10 md:py-20 bg-white">
+      {/* 지점 소식 */}
+      {news.length > 0 && (
+        <section className="py-10 md:py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-end justify-between gap-4 mb-6 md:mb-12">
+              <div>
+                <span className={`inline-block px-3 py-1 ${tc.bgLight} ${tc.text} rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4`}>
+                  NEWS
+                </span>
+                <h2 className="text-xl md:text-4xl font-bold text-gray-900">
+                  지점 소식
+                </h2>
+              </div>
+              <Link
+                href={`/branch/${decodedSubdomain}/news`}
+                className={`inline-flex items-center gap-1 ${tc.text} font-semibold text-sm md:text-base`}
+              >
+                전체보기
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+              {news.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/branch/${decodedSubdomain}/news`}
+                  className="group bg-gray-50 rounded-xl md:rounded-2xl overflow-hidden hover:shadow-lg transition-all"
+                >
+                  {item.thumbnail_url && (
+                    <div className="aspect-[16/9] relative overflow-hidden">
+                      <Image
+                        src={item.thumbnail_url}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4 md:p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full ${tc.bgLight} ${tc.text}`}>
+                        {item.category === 'notice' ? '공지' : item.category === 'event' ? '이벤트' : item.category === 'media' ? '미디어' : '소식'}
+                      </span>
+                      <span className="text-[10px] md:text-xs text-gray-400">
+                        {new Date(item.published_at).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-sm md:text-base mb-1 line-clamp-2 group-hover:text-gray-700">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs md:text-sm text-gray-500 line-clamp-2">{item.content}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 고객 후기 */}
+      <section className={`py-10 md:py-20 ${news.length > 0 ? 'bg-gray-50' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-6 md:mb-12">
             <div>
@@ -416,7 +544,7 @@ export default function BranchHomePage() {
               {reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="bg-gray-50 rounded-xl md:rounded-2xl p-4 md:p-8"
+                  className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm"
                 >
                   <div className="flex items-center gap-0.5 mb-2 md:mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -427,7 +555,7 @@ export default function BranchHomePage() {
                     ))}
                   </div>
                   <p className="text-gray-600 mb-3 md:mb-6 leading-relaxed text-sm md:text-lg line-clamp-3 md:line-clamp-none">
-                    "{review.content}"
+                    &ldquo;{review.content}&rdquo;
                   </p>
                   <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-200">
                     <div>
@@ -442,7 +570,7 @@ export default function BranchHomePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 md:py-12 bg-gray-50 rounded-xl md:rounded-2xl">
+            <div className="text-center py-8 md:py-12 bg-white rounded-xl md:rounded-2xl shadow-sm">
               <Quote className="w-8 h-8 md:w-12 md:h-12 text-gray-300 mx-auto mb-3 md:mb-4" />
               <p className="text-gray-500 mb-3 md:mb-4 text-sm md:text-base">아직 등록된 후기가 없습니다.</p>
               <Link
@@ -457,7 +585,7 @@ export default function BranchHomePage() {
         </div>
       </section>
 
-      {/* 보험 및 이용안내 - 모바일 최적화 */}
+      {/* 보험 및 이용안내 */}
       <section className="py-10 md:py-20 bg-gradient-to-br from-gray-900 to-slate-800 text-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6 md:mb-16">
@@ -478,12 +606,7 @@ export default function BranchHomePage() {
                 <h3 className="text-base md:text-xl font-bold">보험 안내</h3>
               </div>
               <ul className="space-y-2 md:space-y-4">
-                {[
-                  '대인배상: 무한',
-                  '대물배상: 2천만원 ~ 1억원',
-                  '자손/자차: 차량에 따라 상이',
-                  '만 26세 미만 추가요금'
-                ].map((item, index) => (
+                {['대인배상: 무한', '대물배상: 2천만원 ~ 1억원', '자손/자차: 차량에 따라 상이', '만 26세 미만 추가요금'].map((item, index) => (
                   <li key={index} className="flex items-start gap-2 md:gap-3">
                     <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-300 text-xs md:text-base">{item}</span>
@@ -500,12 +623,7 @@ export default function BranchHomePage() {
                 <h3 className="text-base md:text-xl font-bold">이용 안내</h3>
               </div>
               <ul className="space-y-2 md:space-y-4">
-                {[
-                  '만 21세 이상, 면허 1년 이상',
-                  '본인 명의 신용카드 필수',
-                  '24시간 전 무료 취소',
-                  '연료 동일 반납'
-                ].map((item, index) => (
+                {['만 21세 이상, 면허 1년 이상', '본인 명의 신용카드 필수', '24시간 전 무료 취소', '연료 동일 반납'].map((item, index) => (
                   <li key={index} className="flex items-start gap-2 md:gap-3">
                     <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-300 text-xs md:text-base">{item}</span>
@@ -517,9 +635,8 @@ export default function BranchHomePage() {
         </div>
       </section>
 
-      {/* CTA Section - 모바일 최적화 */}
-      <section className={`py-10 md:py-20 ${tc.bg} relative overflow-hidden mb-16 md:mb-0`}>
-        {/* 배경 장식 */}
+      {/* CTA Section */}
+      <section className={`py-10 md:py-20 ${tc.bg} relative overflow-hidden`}>
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
           <div className={`absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 ${tc.accentBg} rounded-full blur-3xl translate-x-1/2 translate-y-1/2`} />
@@ -540,7 +657,7 @@ export default function BranchHomePage() {
             {branch.phone}
           </a>
           <p className="mt-4 md:mt-6 text-white/80 text-xs md:text-sm font-medium">
-            연중무휴 09:00 - 21:00
+            연중무휴 {branch.business_hours || '09:00 - 21:00'}
           </p>
         </div>
       </section>

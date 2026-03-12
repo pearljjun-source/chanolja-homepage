@@ -6,13 +6,14 @@ export interface News {
   id: string
   title: string
   content: string
-  category: 'Media' | 'Business' | 'Partnership' | 'Milestone' | 'Event'
+  category: string
   thumbnail_url: string | null
   is_published: boolean
   published_at: string
   created_at: string
   updated_at: string
   view_count?: number
+  branch_id: string | null
 }
 
 export interface Branch {
