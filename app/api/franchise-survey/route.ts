@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/auth/with-auth'
 import { sendSMS } from '@/lib/solapi/sms'
 
-export const POST = withAuth({ auth: 'public', rateLimit: 'inquiry' }, async (request: NextRequest) => {
+export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (request: NextRequest) => {
   try {
     const body = await request.json()
 

@@ -54,6 +54,12 @@ export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     maxRequests: 3,
   },
 
+  // 설문: 1분에 5번
+  survey: {
+    interval: 60 * 1000,
+    maxRequests: 5,
+  },
+
   // 조회 API: 1분에 200번 (더 관대함)
   read: {
     interval: 60 * 1000,
@@ -112,7 +118,7 @@ export async function checkRateLimit(
     })
 
     // 민감한 API(결제, 인증, 예약, 문의)는 fail-closed (차단)
-    const sensitiveKeys = ['auth', 'payment', 'reservation', 'inquiry']
+    const sensitiveKeys = ['auth', 'payment', 'reservation', 'inquiry', 'survey']
     if (sensitiveKeys.includes(configKey)) {
       console.error('Rate limit check failed (BLOCKED - sensitive API):', error)
       return {
