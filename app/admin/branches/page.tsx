@@ -561,12 +561,14 @@ export default function AdminBranchesPage() {
                 <button
                   onClick={() => openEditModal(branch)}
                   className="p-2 text-gray-400 hover:text-primary transition-colors"
+                  aria-label="지점 편집"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => deleteBranch(branch.id)}
                   className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label="지점 삭제"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -643,6 +645,7 @@ export default function AdminBranchesPage() {
                   setEditingBranch(null)
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="모달 닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -651,10 +654,11 @@ export default function AdminBranchesPage() {
             <div className="p-6 overflow-auto max-h-[60vh] space-y-4">
               {/* 지점명 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="branch-name" className="block text-sm font-medium text-gray-700 mb-1">
                   지점명 <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="branch-name"
                   type="text"
                   value={editingBranch.name}
                   onChange={(e) => setEditingBranch({ ...editingBranch, name: e.target.value })}
@@ -665,8 +669,9 @@ export default function AdminBranchesPage() {
 
               {/* 대표자명 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">대표자명</label>
+                <label htmlFor="owner-name" className="block text-sm font-medium text-gray-700 mb-1">대표자명</label>
                 <input
+                  id="owner-name"
                   type="text"
                   value={editingBranch.owner_name || ''}
                   onChange={(e) => setEditingBranch({ ...editingBranch, owner_name: e.target.value })}
@@ -677,8 +682,9 @@ export default function AdminBranchesPage() {
 
               {/* 사업자등록번호 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">사업자등록번호</label>
+                <label htmlFor="business-number" className="block text-sm font-medium text-gray-700 mb-1">사업자등록번호</label>
                 <input
+                  id="business-number"
                   type="text"
                   value={editingBranch.business_number || ''}
                   onChange={(e) => setEditingBranch({ ...editingBranch, business_number: e.target.value })}
@@ -689,8 +695,9 @@ export default function AdminBranchesPage() {
 
               {/* 주소 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">주소</label>
                 <input
+                  id="address"
                   type="text"
                   value={editingBranch.address || ''}
                   onChange={(e) => setEditingBranch({ ...editingBranch, address: e.target.value })}
@@ -701,8 +708,9 @@ export default function AdminBranchesPage() {
 
               {/* 전화번호 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
                 <input
+                  id="phone"
                   type="text"
                   value={editingBranch.phone || ''}
                   onChange={(e) => setEditingBranch({ ...editingBranch, phone: e.target.value })}
@@ -713,8 +721,9 @@ export default function AdminBranchesPage() {
 
               {/* 홈페이지 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">홈페이지 URL</label>
+                <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">홈페이지 URL</label>
                 <input
+                  id="website"
                   type="url"
                   value={editingBranch.website_url || ''}
                   onChange={(e) => setEditingBranch({ ...editingBranch, website_url: e.target.value })}
@@ -728,10 +737,11 @@ export default function AdminBranchesPage() {
                 <h3 className="text-sm font-bold text-blue-800">관리자 계정 설정</h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="admin-email" className="block text-sm font-medium text-gray-700 mb-1">
                     관리자 이메일
                   </label>
                   <input
+                    id="admin-email"
                     type="email"
                     value={editingBranch.admin_email || ''}
                     onChange={(e) => setEditingBranch({ ...editingBranch, admin_email: e.target.value })}
@@ -741,11 +751,12 @@ export default function AdminBranchesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="admin-password" className="block text-sm font-medium text-gray-700 mb-1">
                     비밀번호
                     <span className="text-xs text-gray-500 ml-2">(새 계정 생성시에만 입력)</span>
                   </label>
                   <input
+                    id="admin-password"
                     type="password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
@@ -771,8 +782,9 @@ export default function AdminBranchesPage() {
 
               {/* 지점 유형 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">지점 유형</label>
+                <label htmlFor="branch-type" className="block text-sm font-medium text-gray-700 mb-1">지점 유형</label>
                 <select
+                  id="branch-type"
                   value={editingBranch.branch_type}
                   onChange={(e) => setEditingBranch({ ...editingBranch, branch_type: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -842,6 +854,7 @@ export default function AdminBranchesPage() {
                   setUploadData([])
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="모달 닫기"
               >
                 <X className="w-5 h-5" />
               </button>

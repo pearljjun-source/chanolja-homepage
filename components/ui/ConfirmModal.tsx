@@ -75,7 +75,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       {state && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
           <div
             className="fixed inset-0 bg-black/50"
             onClick={handleCancel}
@@ -84,7 +84,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <div className={`w-12 h-12 ${colors.icon} rounded-full flex items-center justify-center mx-auto mb-4`}>
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-800 text-center mb-2">
+            <h3 id="confirm-dialog-title" className="text-lg font-bold text-slate-800 text-center mb-2">
               {state.options.title}
             </h3>
             {state.options.message && (

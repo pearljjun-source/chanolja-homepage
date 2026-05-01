@@ -1,53 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { News } from '@/types/database'
 import { NEWS_CATEGORIES as categories, NEWS_CATEGORY_COLORS as categoryColors, NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
 
-export default function NewsList() {
+interface NewsListProps {
+  news: News[]
+}
+
+export default function NewsList({ news }: NewsListProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [news, setNews] = useState<News[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchNews()
-  }, [])
-
-  const fetchNews = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching news:', error)
-    } else {
-      setNews(data || [])
-    }
-    setLoading(false)
-  }
 
   const filteredNews = selectedCategory === 'all'
     ? news
     : news.filter((item) => item.category === selectedCategory)
-
-  if (loading) {
-    return (
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom">
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section className="py-20 bg-gray-50">

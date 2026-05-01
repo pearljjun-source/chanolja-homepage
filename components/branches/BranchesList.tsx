@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MapPin, Phone, Car, Tent, Globe, ExternalLink, Home } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import { HQ } from '@/lib/constants/company'
 
 interface Branch {
@@ -21,60 +19,13 @@ interface Branch {
   vehicle_count?: number
 }
 
-export default function BranchesList() {
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(true)
+interface BranchesListProps {
+  branches: Branch[]
+  regions: string[]
+}
+
+export default function BranchesList({ branches, regions }: BranchesListProps) {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
-  const [regions, setRegions] = useState<string[]>(['전체'])
-
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const supabase = createClient()
-
-        // 지점 조회
-        const { data: branchesData, error: branchesError } = await supabase
-          .from('branches')
-          .select(BRANCHES_PUBLIC_COLUMNS)
-          .eq('is_active', true)
-          .order('name', { ascending: true })
-
-        if (branchesError) {
-          console.error('Supabase error:', branchesError)
-        }
-
-        if (branchesData) {
-          // 각 지점의 차량 수 조회
-          const { data: vehicleCounts } = await supabase
-            .from('vehicles')
-            .select('branch_id')
-            .eq('is_active', true)
-
-          // 지점별 차량 수 계산
-          const countMap: Record<string, number> = {}
-          vehicleCounts?.forEach(v => {
-            countMap[v.branch_id] = (countMap[v.branch_id] || 0) + 1
-          })
-
-          // 지점 데이터에 차량 수 추가
-          const branchesWithCount = branchesData.map(b => ({
-            ...b,
-            vehicle_count: countMap[b.id] || 0
-          }))
-
-          setBranches(branchesWithCount)
-          // 지역 목록 추출
-          const uniqueRegions = [...new Set(branchesData.map(b => b.region))].sort()
-          setRegions(['전체', ...uniqueRegions])
-        }
-      } catch (err) {
-        console.error('Fetch error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchBranches()
-  }, [])
 
   const filteredBranches = selectedRegion === '전체'
     ? branches
@@ -94,14 +45,8 @@ export default function BranchesList() {
           </p>
         </div>
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <>
-            {/* Region Tabs */}
+        {/* Region Tabs */}
+        <>
             <div className="flex flex-wrap justify-center gap-2 mb-12">
               {regions.map((region) => (
                 <button
@@ -190,7 +135,6 @@ export default function BranchesList() {
               </div>
             )}
           </>
-        )}
 
         {/* Contact Info */}
         <div className="mt-12 bg-primary rounded-2xl p-8 text-white text-center">

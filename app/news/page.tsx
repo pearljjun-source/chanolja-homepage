@@ -1,6 +1,10 @@
 import { Metadata } from 'next'
 import NewsHero from '@/components/news/NewsHero'
 import NewsList from '@/components/news/NewsList'
+import { createClient } from '@/lib/supabase/server'
+import type { News } from '@/types/database'
+
+export const revalidate = 1800 // 30분마다 ISR 재생성
 
 export const metadata: Metadata = {
   title: '뉴스룸',
@@ -10,11 +14,21 @@ export const metadata: Metadata = {
   },
 }
 
-export default function NewsPage() {
+export default async function NewsPage() {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('news')
+    .select('*')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
+
+  const news = (data || []) as News[]
+
   return (
     <>
       <NewsHero />
-      <NewsList />
+      <NewsList news={news} />
     </>
   )
 }

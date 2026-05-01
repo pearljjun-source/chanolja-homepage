@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import {
   Shield,
@@ -12,12 +12,12 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Calendar
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
-import type { VehicleInsurance, Branch, Vehicle } from '@/types/database'
+import { useActiveBranches, useInsurances, useExpiringInsuranceCount } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
+import type { Branch, Vehicle } from '@/types/database'
 
 const insuranceTypeLabels: Record<string, string> = {
   comprehensive: '종합보험',
@@ -27,73 +27,25 @@ const insuranceTypeLabels: Record<string, string> = {
 export default function AdminInsurancesPage() {
   const toast = useToast()
   const confirm = useConfirm()
-  const [insurances, setInsurances] = useState<VehicleInsurance[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [showExpiringOnly, setShowExpiringOnly] = useState(false)
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [expiringCount, setExpiringCount] = useState(0)
   const pageSize = 10
 
-  useEffect(() => {
-    fetchBranches()
-    fetchExpiringCount()
-  }, [])
+  const { data: branches = [] } = useActiveBranches()
+  const { data: expiringCount = 0 } = useExpiringInsuranceCount()
+  const { data: insuranceData, isLoading: loading } = useInsurances({
+    page,
+    pageSize,
+    branchId: selectedBranch,
+    expiringSoon: showExpiringOnly,
+  })
 
-  useEffect(() => {
-    fetchInsurances()
-  }, [page, selectedBranch, showExpiringOnly])
-
-  const fetchBranches = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-    if (data) setBranches(data)
-  }
-
-  const fetchExpiringCount = async () => {
-    try {
-      const response = await fetch('/api/insurances?expiring_soon=true&page_size=100')
-      const result = await response.json()
-      if (result.success) {
-        setExpiringCount(result.total || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch expiring count:', error)
-    }
-  }
-
-  const fetchInsurances = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString()
-      })
-      if (selectedBranch) params.append('branch_id', selectedBranch)
-      if (showExpiringOnly) params.append('expiring_soon', 'true')
-
-      const response = await fetch(`/api/insurances?${params}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setInsurances(result.data || [])
-        setTotalPages(result.totalPages || 1)
-        setTotal(result.total || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch insurances:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const insurances = insuranceData?.data || []
+  const totalPages = insuranceData?.totalPages || 1
+  const total = insuranceData?.total || 0
 
   const handleDelete = async (id: string) => {
     if (!await confirm({ title: '정말 이 보험 정보를 삭제하시겠습니까?', variant: 'danger' })) return
@@ -106,7 +58,7 @@ export default function AdminInsurancesPage() {
 
       if (result.success) {
         toast.success('보험 정보가 삭제되었습니다.')
-        fetchInsurances()
+        queryClient.invalidateQueries({ queryKey: ['insurances'] })
       } else {
         toast.error(result.error || '삭제에 실패했습니다.')
       }
@@ -178,7 +130,6 @@ export default function AdminInsurancesPage() {
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <div className="grid sm:grid-cols-4 gap-4">
-          {/* Search */}
           <div className="relative sm:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -190,7 +141,6 @@ export default function AdminInsurancesPage() {
             />
           </div>
 
-          {/* Branch Filter */}
           <select
             value={selectedBranch}
             onChange={(e) => {
@@ -207,7 +157,6 @@ export default function AdminInsurancesPage() {
             ))}
           </select>
 
-          {/* Expiring Filter */}
           <label className="flex items-center gap-2 px-4 py-2 cursor-pointer">
             <input
               type="checkbox"

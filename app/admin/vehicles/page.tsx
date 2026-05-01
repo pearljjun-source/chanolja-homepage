@@ -1,23 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
   Car,
   Plus,
   Search,
-  Filter,
   Edit,
   Trash2,
   Eye,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
-import type { Vehicle, Branch } from '@/types/database'
+import { useActiveBranches, useVehicles } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
+import { revalidateBranches } from '@/app/actions/revalidate'
+import type { Branch } from '@/types/database'
 
 const vehicleTypeLabels: Record<string, string> = {
   sedan: '세단',
@@ -38,59 +39,24 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 export default function AdminVehiclesPage() {
   const toast = useToast()
   const confirm = useConfirm()
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
   const pageSize = 10
 
-  useEffect(() => {
-    fetchBranches()
-  }, [])
+  const { data: branches = [] } = useActiveBranches()
+  const { data: vehicleData, isLoading: loading } = useVehicles({
+    page,
+    pageSize,
+    branchId: selectedBranch,
+    status: selectedStatus,
+  })
 
-  useEffect(() => {
-    fetchVehicles()
-  }, [page, selectedBranch, selectedStatus])
-
-  const fetchBranches = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-    if (data) setBranches(data)
-  }
-
-  const fetchVehicles = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString()
-      })
-      if (selectedBranch) params.append('branch_id', selectedBranch)
-      if (selectedStatus) params.append('status', selectedStatus)
-
-      const response = await fetch(`/api/vehicles?${params}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setVehicles(result.data || [])
-        setTotalPages(result.totalPages || 1)
-        setTotal(result.total || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch vehicles:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const vehicles = vehicleData?.data || []
+  const totalPages = vehicleData?.totalPages || 1
+  const total = vehicleData?.total || 0
 
   const handleDelete = async (id: string) => {
     if (!await confirm({ title: '정말 이 차량을 삭제하시겠습니까?', variant: 'danger' })) return
@@ -103,7 +69,8 @@ export default function AdminVehiclesPage() {
 
       if (result.success) {
         toast.success('차량이 삭제되었습니다.')
-        fetchVehicles()
+        queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+        revalidateBranches()
       } else {
         toast.error(result.error || '삭제에 실패했습니다.')
       }
@@ -267,6 +234,7 @@ export default function AdminVehiclesPage() {
                             href={`/admin/vehicles/${vehicle.id}`}
                             className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
                             title="상세보기"
+                            aria-label="상세보기"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
@@ -274,6 +242,7 @@ export default function AdminVehiclesPage() {
                             href={`/admin/vehicles/${vehicle.id}/edit`}
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="수정"
+                            aria-label="수정"
                           >
                             <Edit className="w-4 h-4" />
                           </Link>
@@ -281,6 +250,7 @@ export default function AdminVehiclesPage() {
                             onClick={() => handleDelete(vehicle.id)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="삭제"
+                            aria-label="삭제"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -303,6 +273,7 @@ export default function AdminVehiclesPage() {
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="이전 페이지"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -313,6 +284,7 @@ export default function AdminVehiclesPage() {
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="다음 페이지"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>

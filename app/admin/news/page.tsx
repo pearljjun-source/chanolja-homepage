@@ -1,37 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { News } from '@/types/database'
 import { useConfirm } from '@/components/ui/ConfirmModal'
 import { NEWS_CATEGORY_LABELS as categoryLabels } from '@/lib/constants/categories'
+import { useAdminNews } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
+import { revalidateNews } from '@/app/actions/news'
 
 export default function AdminNewsPage() {
   const confirm = useConfirm()
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
-  const [news, setNews] = useState<News[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchNews()
-  }, [])
-
-  const fetchNews = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching news:', error)
-    } else {
-      setNews(data || [])
-    }
-    setLoading(false)
-  }
+  const { data: news = [], isLoading: loading } = useAdminNews()
 
   const togglePublish = async (id: string, currentStatus: boolean) => {
     const supabase = createClient()
@@ -41,9 +25,8 @@ export default function AdminNewsPage() {
       .eq('id', id)
 
     if (!error) {
-      setNews(prev =>
-        prev.map(n => n.id === id ? { ...n, is_published: !currentStatus } : n)
-      )
+      queryClient.invalidateQueries({ queryKey: ['admin', 'news'] })
+      revalidateNews()
     }
   }
 
@@ -57,7 +40,8 @@ export default function AdminNewsPage() {
       .eq('id', id)
 
     if (!error) {
-      setNews(prev => prev.filter(n => n.id !== id))
+      queryClient.invalidateQueries({ queryKey: ['admin', 'news'] })
+      revalidateNews()
     }
   }
 
@@ -159,12 +143,14 @@ export default function AdminNewsPage() {
                     <Link
                       href={`/admin/news/${item.id}`}
                       className="p-2 text-gray-400 hover:text-primary transition-colors"
+                      aria-label="뉴스 수정"
                     >
                       <Edit className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={() => deleteNews(item.id)}
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="뉴스 삭제"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

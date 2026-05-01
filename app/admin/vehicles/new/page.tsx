@@ -132,10 +132,11 @@ export default function NewVehiclePage() {
           <h2 className="text-lg font-bold text-dark mb-6">기본 정보</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="branch_id" className="block text-sm font-medium text-gray-700 mb-2">
                 지점 선택 <span className="text-red-500">*</span>
               </label>
               <select
+                id="branch_id"
                 value={formData.branch_id}
                 onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -151,10 +152,11 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 차량명 <span className="text-red-500">*</span>
               </label>
               <input
+                id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -165,8 +167,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">브랜드</label>
+              <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-2">브랜드</label>
               <input
+                id="brand"
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
@@ -176,8 +179,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">모델</label>
+              <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">모델</label>
               <input
+                id="model"
                 type="text"
                 value={formData.model}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value })}
@@ -187,8 +191,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">연식</label>
+              <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">연식</label>
               <input
+                id="year"
                 type="number"
                 value={formData.year}
                 onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
@@ -199,8 +204,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">차량번호</label>
+              <label htmlFor="license_plate" className="block text-sm font-medium text-gray-700 mb-2">차량번호</label>
               <input
+                id="license_plate"
                 type="text"
                 value={formData.license_plate}
                 onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
@@ -210,8 +216,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">차량 유형</label>
+              <label htmlFor="vehicle_type" className="block text-sm font-medium text-gray-700 mb-2">차량 유형</label>
               <select
+                id="vehicle_type"
                 value={formData.vehicle_type}
                 onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -226,8 +233,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">색상</label>
+              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">색상</label>
               <input
+                id="color"
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
@@ -243,8 +251,9 @@ export default function NewVehiclePage() {
           <h2 className="text-lg font-bold text-dark mb-6">차량 제원</h2>
           <div className="grid md:grid-cols-4 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">좌석수</label>
+              <label htmlFor="seats" className="block text-sm font-medium text-gray-700 mb-2">좌석수</label>
               <input
+                id="seats"
                 type="number"
                 value={formData.seats}
                 onChange={(e) => setFormData({ ...formData, seats: parseInt(e.target.value) })}
@@ -255,8 +264,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">연료</label>
+              <label htmlFor="fuel_type" className="block text-sm font-medium text-gray-700 mb-2">연료</label>
               <select
+                id="fuel_type"
                 value={formData.fuel_type}
                 onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -270,8 +280,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">변속기</label>
+              <label htmlFor="transmission" className="block text-sm font-medium text-gray-700 mb-2">변속기</label>
               <select
+                id="transmission"
                 value={formData.transmission}
                 onChange={(e) => setFormData({ ...formData, transmission: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -282,8 +293,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">주행거리 (km)</label>
+              <label htmlFor="mileage" className="block text-sm font-medium text-gray-700 mb-2">주행거리 (km)</label>
               <input
+                id="mileage"
                 type="number"
                 value={formData.mileage}
                 onChange={(e) => setFormData({ ...formData, mileage: parseInt(e.target.value) })}
@@ -299,10 +311,11 @@ export default function NewVehiclePage() {
           <h2 className="text-lg font-bold text-dark mb-6">요금 정보</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="price_per_day" className="block text-sm font-medium text-gray-700 mb-2">
                 일 요금 (원) <span className="text-red-500">*</span>
               </label>
               <input
+                id="price_per_day"
                 type="number"
                 value={formData.price_per_day}
                 onChange={(e) => setFormData({ ...formData, price_per_day: parseInt(e.target.value) })}
@@ -314,8 +327,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">시간 요금 (원)</label>
+              <label htmlFor="price_per_hour" className="block text-sm font-medium text-gray-700 mb-2">시간 요금 (원)</label>
               <input
+                id="price_per_hour"
                 type="number"
                 value={formData.price_per_hour}
                 onChange={(e) => setFormData({ ...formData, price_per_hour: parseInt(e.target.value) })}
@@ -326,8 +340,9 @@ export default function NewVehiclePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">보증금 (원)</label>
+              <label htmlFor="deposit" className="block text-sm font-medium text-gray-700 mb-2">보증금 (원)</label>
               <input
+                id="deposit"
                 type="number"
                 value={formData.deposit}
                 onChange={(e) => setFormData({ ...formData, deposit: parseInt(e.target.value) })}
@@ -382,6 +397,7 @@ export default function NewVehiclePage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-bold text-dark mb-6">상세 설명</h2>
           <textarea
+            id="description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={5}

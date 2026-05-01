@@ -121,10 +121,12 @@ export default function BranchAboutPage() {
             <div className="relative">
               {branchImages.length > 0 ? (
                 <div className="relative aspect-square rounded-2xl overflow-hidden">
-                  <img
+                  <Image
                     src={branchImages[0]}
                     alt={`${branch.name} 지점 이미지`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
               ) : (

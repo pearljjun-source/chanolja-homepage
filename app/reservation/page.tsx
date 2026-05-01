@@ -479,11 +479,12 @@ function ReservationContent() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="start-date" className="block text-white/70 text-sm font-medium mb-2">
                       대여 시작일
                     </label>
                     <div className="flex gap-2">
                       <input
+                        id="start-date"
                         type="date"
                         value={formData.start_date}
                         onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
@@ -492,6 +493,7 @@ function ReservationContent() {
                         required
                       />
                       <select
+                        id="start-time"
                         value={formData.start_time}
                         onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                         className="px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -505,11 +507,12 @@ function ReservationContent() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="end-date" className="block text-white/70 text-sm font-medium mb-2">
                       반납일
                     </label>
                     <div className="flex gap-2">
                       <input
+                        id="end-date"
                         type="date"
                         value={formData.end_date}
                         onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
@@ -518,6 +521,7 @@ function ReservationContent() {
                         required
                       />
                       <select
+                        id="end-time"
                         value={formData.end_time}
                         onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                         className="px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -547,10 +551,11 @@ function ReservationContent() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="customer-name" className="block text-white/70 text-sm font-medium mb-2">
                       이름 <span className="text-red-400">*</span>
                     </label>
                     <input
+                      id="customer-name"
                       type="text"
                       value={formData.customer_name}
                       onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
@@ -560,10 +565,11 @@ function ReservationContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="customer-phone" className="block text-white/70 text-sm font-medium mb-2">
                       연락처 <span className="text-red-400">*</span>
                     </label>
                     <input
+                      id="customer-phone"
                       type="tel"
                       value={formData.customer_phone}
                       onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
@@ -573,10 +579,11 @@ function ReservationContent() {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="customer-email" className="block text-white/70 text-sm font-medium mb-2">
                       이메일
                     </label>
                     <input
+                      id="customer-email"
                       type="email"
                       value={formData.customer_email}
                       onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })}
@@ -585,10 +592,11 @@ function ReservationContent() {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-white/70 text-sm font-medium mb-2">
+                    <label htmlFor="customer-memo" className="block text-white/70 text-sm font-medium mb-2">
                       요청사항
                     </label>
                     <textarea
+                      id="customer-memo"
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="픽업 장소, 기타 요청사항을 입력하세요"

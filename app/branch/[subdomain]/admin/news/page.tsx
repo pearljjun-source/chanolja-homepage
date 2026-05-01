@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import {
   Plus,
   Edit2,
@@ -205,11 +206,15 @@ export default function BranchNewsAdminPage() {
             <div key={news.id} className="bg-white rounded-xl border p-4 flex items-start gap-4">
               {/* 썸네일 */}
               {news.thumbnail_url && (
-                <img
-                  src={news.thumbnail_url}
-                  alt=""
-                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0 hidden sm:block"
-                />
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 hidden sm:block">
+                  <Image
+                    src={news.thumbnail_url}
+                    alt={news.title}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                </div>
               )}
 
               <div className="flex-1 min-w-0">
@@ -239,6 +244,7 @@ export default function BranchNewsAdminPage() {
                     news.is_published ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-100'
                   }`}
                   title={news.is_published ? '비공개로 전환' : '게시하기'}
+                  aria-label={news.is_published ? '비공개로 전환' : '게시하기'}
                 >
                   {news.is_published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
@@ -246,6 +252,7 @@ export default function BranchNewsAdminPage() {
                   onClick={() => openEditModal(news)}
                   className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
                   title="수정"
+                  aria-label="수정"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -253,6 +260,7 @@ export default function BranchNewsAdminPage() {
                   onClick={() => deleteNews(news.id)}
                   className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
                   title="삭제"
+                  aria-label="삭제"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -268,7 +276,7 @@ export default function BranchNewsAdminPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b">
               <h2 className="text-lg font-bold">{editingNews ? '뉴스 수정' : '새 글 작성'}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 rounded-lg">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 rounded-lg" aria-label="모달 닫기">
                 <X className="w-5 h-5" />
               </button>
             </div>

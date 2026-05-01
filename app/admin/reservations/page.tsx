@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useDeferredValue } from 'react'
 import Link from 'next/link'
 import {
   Calendar,
@@ -8,16 +8,16 @@ import {
   Eye,
   Check,
   X,
-  Clock,
   ChevronLeft,
   ChevronRight,
   CreditCard,
   Phone
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
-import type { Reservation, Branch, Vehicle } from '@/types/database'
+import { useActiveBranches, useReservations } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
+import type { Branch, Vehicle } from '@/types/database'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   pending: { label: '대기중', color: 'bg-yellow-100 text-yellow-800' },
@@ -38,59 +38,26 @@ const paymentStatusLabels: Record<string, { label: string; color: string }> = {
 export default function AdminReservationsPage() {
   const toast = useToast()
   const confirm = useConfirm()
-  const [reservations, setReservations] = useState<Reservation[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
+  const deferredSearch = useDeferredValue(searchTerm)
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
   const pageSize = 10
 
-  useEffect(() => {
-    fetchBranches()
-  }, [])
+  const { data: branches = [] } = useActiveBranches()
+  const { data: reservationData, isLoading: loading } = useReservations({
+    page,
+    pageSize,
+    branchId: selectedBranch,
+    status: selectedStatus,
+    search: deferredSearch || undefined,
+  })
 
-  useEffect(() => {
-    fetchReservations()
-  }, [page, selectedBranch, selectedStatus])
-
-  const fetchBranches = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-    if (data) setBranches(data)
-  }
-
-  const fetchReservations = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString()
-      })
-      if (selectedBranch) params.append('branch_id', selectedBranch)
-      if (selectedStatus) params.append('status', selectedStatus)
-
-      const response = await fetch(`/api/reservations?${params}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setReservations(result.data || [])
-        setTotalPages(result.totalPages || 1)
-        setTotal(result.total || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch reservations:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const reservations = reservationData?.data || []
+  const totalPages = reservationData?.totalPages || 1
+  const total = reservationData?.total || 0
 
   const handleStatusChange = async (id: string, action: string, cancelReason?: string) => {
     try {
@@ -103,7 +70,7 @@ export default function AdminReservationsPage() {
 
       if (result.success) {
         toast.success(result.message)
-        fetchReservations()
+        queryClient.invalidateQueries({ queryKey: ['reservations'] })
       } else {
         toast.error(result.error || '상태 변경에 실패했습니다.')
       }
@@ -131,12 +98,6 @@ export default function AdminReservationsPage() {
     }
   }
 
-  const filteredReservations = reservations.filter(reservation =>
-    reservation.customer_name.includes(searchTerm) ||
-    reservation.customer_phone.includes(searchTerm) ||
-    reservation.reservation_number?.includes(searchTerm)
-  )
-
   return (
     <div>
       {/* Header */}
@@ -157,7 +118,7 @@ export default function AdminReservationsPage() {
               type="text"
               placeholder="고객명, 연락처, 예약번호 검색"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1) }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
@@ -205,7 +166,7 @@ export default function AdminReservationsPage() {
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : filteredReservations.length === 0 ? (
+        ) : reservations.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>예약이 없습니다.</p>
@@ -226,7 +187,7 @@ export default function AdminReservationsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredReservations.map((reservation) => (
+                  {reservations.map((reservation) => (
                     <tr key={reservation.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <span className="font-mono text-sm text-primary">
@@ -278,6 +239,7 @@ export default function AdminReservationsPage() {
                             href={`/admin/reservations/${reservation.id}`}
                             className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
                             title="상세보기"
+                            aria-label="상세보기"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
@@ -288,6 +250,7 @@ export default function AdminReservationsPage() {
                                 onClick={() => handleApprove(reservation.id)}
                                 className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="승인"
+                                aria-label="승인"
                               >
                                 <Check className="w-4 h-4" />
                               </button>
@@ -295,6 +258,7 @@ export default function AdminReservationsPage() {
                                 onClick={() => handleCancel(reservation.id)}
                                 className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title="취소"
+                                aria-label="취소"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -306,6 +270,7 @@ export default function AdminReservationsPage() {
                               href={`/admin/reservations/${reservation.id}/payment`}
                               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="결제요청"
+                              aria-label="결제요청"
                             >
                               <CreditCard className="w-4 h-4" />
                             </Link>
@@ -316,6 +281,7 @@ export default function AdminReservationsPage() {
                               onClick={() => handleComplete(reservation.id)}
                               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="완료처리"
+                              aria-label="완료처리"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -339,6 +305,7 @@ export default function AdminReservationsPage() {
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="이전 페이지"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -349,6 +316,7 @@ export default function AdminReservationsPage() {
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="다음 페이지"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>

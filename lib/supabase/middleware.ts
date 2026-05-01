@@ -31,23 +31,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // 관리자 페이지 접근 제어
+  // 관리자 페이지 접근 제어: 인증 여부만 확인 (역할 검사는 admin layout 서버 컴포넌트에서)
   if (request.nextUrl.pathname.startsWith('/admin')) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-
-    // 허용된 관리자 이메일 목록
-    const allowedEmails = [
-      'jet1118lg@gmail.com',
-      'chanolja.official@gmail.com',
-    ]
-
-    if (!allowedEmails.includes(user.email || '')) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
       return NextResponse.redirect(url)
     }
   }

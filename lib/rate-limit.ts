@@ -6,6 +6,7 @@
  */
 
 import { Redis } from '@upstash/redis'
+import { captureApiError } from '@/lib/sentry'
 
 // Upstash Redis 클라이언트 생성
 const redis = new Redis({
@@ -104,8 +105,25 @@ export async function checkRateLimit(
       resetTime,
     }
   } catch (error) {
-    // KV 연결 실패 시 기본적으로 통과 (서비스 가용성 우선)
-    // 주의: Redis 장애 시 rate limit이 우회됨 - 모니터링 필요
+    // Sentry 알림: Redis 장애 감지
+    captureApiError(error, {
+      api: 'rate-limit',
+      extra: { configKey, identifier },
+    })
+
+    // 민감한 API(결제, 인증, 예약, 문의)는 fail-closed (차단)
+    const sensitiveKeys = ['auth', 'payment', 'reservation', 'inquiry']
+    if (sensitiveKeys.includes(configKey)) {
+      console.error('Rate limit check failed (BLOCKED - sensitive API):', error)
+      return {
+        success: false,
+        limit: config.maxRequests,
+        remaining: 0,
+        resetTime: Date.now() + config.interval,
+      }
+    }
+
+    // 일반 API는 fail-open (통과)
     console.error('Rate limit check failed (BYPASS):', error)
     return {
       success: true,

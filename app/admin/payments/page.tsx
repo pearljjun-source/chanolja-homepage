@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   CreditCard,
@@ -13,9 +13,10 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
-import type { Payment, Branch } from '@/types/database'
+import { useActiveBranches, usePayments } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
+import type { Branch, Payment } from '@/types/database'
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   pending: { label: '대기', color: 'bg-yellow-100 text-yellow-800' },
@@ -42,75 +43,34 @@ const paymentMethodLabels: Record<string, string> = {
 
 export default function AdminPaymentsPage() {
   const toast = useToast()
-  const [payments, setPayments] = useState<Payment[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [stats, setStats] = useState({
-    totalAmount: 0,
-    completedAmount: 0,
-    pendingAmount: 0
-  })
   const pageSize = 10
 
-  useEffect(() => {
-    fetchBranches()
-  }, [])
+  const { data: branches = [] } = useActiveBranches()
+  const { data: paymentData, isLoading: loading } = usePayments({
+    page,
+    pageSize,
+    branchId: selectedBranch,
+    status: selectedStatus,
+  })
 
-  useEffect(() => {
-    fetchPayments()
-  }, [page, selectedBranch, selectedStatus])
+  const payments = paymentData?.data || []
+  const totalPages = paymentData?.totalPages || 1
+  const total = paymentData?.total || 0
 
-  const fetchBranches = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-    if (data) setBranches(data)
-  }
-
-  const fetchPayments = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString()
-      })
-      if (selectedBranch) params.append('branch_id', selectedBranch)
-      if (selectedStatus) params.append('status', selectedStatus)
-
-      const response = await fetch(`/api/payments?${params}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setPayments(result.data || [])
-        setTotalPages(result.totalPages || 1)
-        setTotal(result.total || 0)
-
-        // Calculate stats
-        const allPayments = result.data || []
-        const completed = allPayments.filter((p: Payment) => p.status === 'completed')
-        const pending = allPayments.filter((p: Payment) => p.status === 'pending')
-
-        setStats({
-          totalAmount: allPayments.reduce((sum: number, p: Payment) => sum + p.amount, 0),
-          completedAmount: completed.reduce((sum: number, p: Payment) => sum + p.amount, 0),
-          pendingAmount: pending.reduce((sum: number, p: Payment) => sum + p.amount, 0)
-        })
-      }
-    } catch (error) {
-      console.error('Failed to fetch payments:', error)
-    } finally {
-      setLoading(false)
+  const stats = useMemo(() => {
+    const completed = payments.filter((p: Payment) => p.status === 'completed')
+    const pending = payments.filter((p: Payment) => p.status === 'pending')
+    return {
+      totalAmount: payments.reduce((sum: number, p: Payment) => sum + p.amount, 0),
+      completedAmount: completed.reduce((sum: number, p: Payment) => sum + p.amount, 0),
+      pendingAmount: pending.reduce((sum: number, p: Payment) => sum + p.amount, 0),
     }
-  }
+  }, [payments])
 
   const handleRefund = async (paymentId: string) => {
     const reason = prompt('환불 사유를 입력하세요:')
@@ -126,7 +86,7 @@ export default function AdminPaymentsPage() {
 
       if (result.success) {
         toast.success(result.message)
-        fetchPayments()
+        queryClient.invalidateQueries({ queryKey: ['payments'] })
       } else {
         toast.error(result.error || '환불 처리에 실패했습니다.')
       }
@@ -179,7 +139,6 @@ export default function AdminPaymentsPage() {
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <div className="grid sm:grid-cols-3 gap-4">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -191,7 +150,6 @@ export default function AdminPaymentsPage() {
             />
           </div>
 
-          {/* Branch Filter */}
           <select
             value={selectedBranch}
             onChange={(e) => {
@@ -208,7 +166,6 @@ export default function AdminPaymentsPage() {
             ))}
           </select>
 
-          {/* Status Filter */}
           <select
             value={selectedStatus}
             onChange={(e) => {
@@ -319,6 +276,7 @@ export default function AdminPaymentsPage() {
                             href={`/admin/payments/${payment.id}`}
                             className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
                             title="상세보기"
+                            aria-label="상세보기"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
@@ -328,6 +286,7 @@ export default function AdminPaymentsPage() {
                               onClick={() => handleRefund(payment.id)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="환불"
+                              aria-label="환불"
                             >
                               <RefreshCw className="w-4 h-4" />
                             </button>
@@ -351,6 +310,7 @@ export default function AdminPaymentsPage() {
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="이전 페이지"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -361,6 +321,7 @@ export default function AdminPaymentsPage() {
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="다음 페이지"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>

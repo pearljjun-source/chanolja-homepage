@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface CardProps {
@@ -127,11 +128,13 @@ export function CardImage({ src, alt, className, aspectRatio = 'video' }: CardIm
   }
 
   return (
-    <div className={cn('overflow-hidden rounded-t-xl -mx-4 -mt-4 mb-4', className)}>
-      <img
+    <div className={cn('overflow-hidden rounded-t-xl -mx-4 -mt-4 mb-4 relative', className, aspectStyles[aspectRatio])}>
+      <Image
         src={src}
         alt={alt}
-        className={cn('w-full object-cover', aspectStyles[aspectRatio])}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 50vw"
       />
     </div>
   )
@@ -163,7 +166,9 @@ export function VehicleCard({
     <Card variant="default" padding="none" hoverable onClick={onClick}>
       <div className="relative">
         {imageUrl ? (
-          <img src={imageUrl} alt={name} className="w-full aspect-[4/3] object-cover rounded-t-xl" />
+          <div className="relative w-full aspect-[4/3]">
+            <Image src={imageUrl} alt={name} fill className="object-cover rounded-t-xl" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+          </div>
         ) : (
           <div className="w-full aspect-[4/3] bg-slate-100 rounded-t-xl flex items-center justify-center">
             <span className="text-slate-400">이미지 없음</span>
@@ -221,7 +226,9 @@ export function NewsCard({
   return (
     <Card variant="elevated" padding="none" hoverable onClick={onClick}>
       {imageUrl ? (
-        <img src={imageUrl} alt={title} className="w-full aspect-video object-cover rounded-t-xl" />
+        <div className="relative w-full aspect-video">
+          <Image src={imageUrl} alt={title} fill className="object-cover rounded-t-xl" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+        </div>
       ) : (
         <div className="w-full aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-xl" />
       )}

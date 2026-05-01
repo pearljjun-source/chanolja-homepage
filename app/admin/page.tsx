@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Newspaper, MapPin, MessageSquare, TrendingUp, Car, Calendar, CreditCard, Shield, AlertTriangle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useDashboardStats, useDashboardRecentItems } from '@/lib/hooks/use-admin-queries'
 
 const typeLabels: Record<string, string> = {
   branch: '지점 개설',
@@ -13,109 +12,21 @@ const typeLabels: Record<string, string> = {
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    newsCount: 0,
-    branchCount: 0,
-    unreadInquiries: 0,
-    vehicleCount: 0,
-    pendingReservations: 0,
-    monthlyRevenue: 0,
-    expiringInsurances: 0,
-  })
-  const [recentInquiries, setRecentInquiries] = useState<any[]>([])
-  const [recentNews, setRecentNews] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: stats, isLoading: statsLoading } = useDashboardStats()
+  const { data: recent, isLoading: recentLoading } = useDashboardRecentItems()
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
+  const loading = statsLoading || recentLoading
 
-  const fetchDashboardData = async () => {
-    const supabase = createClient()
-
-    // Fetch news count
-    const { count: newsCount } = await supabase
-      .from('news')
-      .select('*', { count: 'exact', head: true })
-
-    // Fetch branches count
-    const { count: branchCount } = await supabase
-      .from('branches')
-      .select('*', { count: 'exact', head: true })
-
-    // Fetch unread inquiries count
-    const { count: unreadCount } = await supabase
-      .from('inquiries')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_read', false)
-
-    // Fetch vehicle count
-    const { count: vehicleCount } = await supabase
-      .from('vehicles')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true)
-
-    // Fetch pending reservations count
-    const { count: pendingReservations } = await supabase
-      .from('reservations')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-
-    // Fetch monthly revenue
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
-    const { data: payments } = await supabase
-      .from('payments')
-      .select('amount')
-      .eq('status', 'completed')
-      .gte('paid_at', startOfMonth.toISOString())
-    const monthlyRevenue = payments?.reduce((sum, p) => sum + p.amount, 0) || 0
-
-    // Fetch expiring insurances count
-    const thirtyDaysLater = new Date()
-    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30)
-    const { count: expiringInsurances } = await supabase
-      .from('vehicle_insurances')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true)
-      .lte('end_date', thirtyDaysLater.toISOString().split('T')[0])
-
-    // Fetch recent inquiries
-    const { data: inquiries } = await supabase
-      .from('inquiries')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(4)
-
-    // Fetch recent news
-    const { data: news } = await supabase
-      .from('news')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(3)
-
-    setStats({
-      newsCount: newsCount || 0,
-      branchCount: branchCount || 0,
-      unreadInquiries: unreadCount || 0,
-      vehicleCount: vehicleCount || 0,
-      pendingReservations: pendingReservations || 0,
-      monthlyRevenue: monthlyRevenue,
-      expiringInsurances: expiringInsurances || 0,
-    })
-    setRecentInquiries(inquiries || [])
-    setRecentNews(news || [])
-    setLoading(false)
-  }
-
-  if (loading) {
+  if (loading || !stats) {
     return (
       <div className="flex justify-center items-center py-20">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
   }
+
+  const recentInquiries = recent?.recentInquiries || []
+  const recentNews = recent?.recentNews || []
 
   const statsData = [
     {

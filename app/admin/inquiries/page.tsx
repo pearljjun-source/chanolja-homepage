@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Search, Mail, MailOpen, Trash2, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Inquiry } from '@/types/database'
 import { useConfirm } from '@/components/ui/ConfirmModal'
+import { useAdminInquiries } from '@/lib/hooks/use-admin-queries'
+import { useQueryClient } from '@tanstack/react-query'
 
 const typeLabels: Record<string, string> = {
   branch: '지점 개설',
@@ -15,29 +17,11 @@ const typeLabels: Record<string, string> = {
 
 export default function AdminInquiriesPage() {
   const confirm = useConfirm()
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
-  const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchInquiries()
-  }, [])
-
-  const fetchInquiries = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('inquiries')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching inquiries:', error)
-    } else {
-      setInquiries(data || [])
-    }
-    setLoading(false)
-  }
+  const { data: inquiries = [], isLoading: loading } = useAdminInquiries()
 
   const markAsRead = async (inquiry: Inquiry) => {
     if (inquiry.is_read) return
@@ -49,9 +33,7 @@ export default function AdminInquiriesPage() {
       .eq('id', inquiry.id)
 
     if (!error) {
-      setInquiries(prev =>
-        prev.map(i => i.id === inquiry.id ? { ...i, is_read: true } : i)
-      )
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inquiries'] })
       if (selectedInquiry?.id === inquiry.id) {
         setSelectedInquiry({ ...inquiry, is_read: true })
       }
@@ -68,7 +50,7 @@ export default function AdminInquiriesPage() {
       .eq('id', id)
 
     if (!error) {
-      setInquiries(prev => prev.filter(i => i.id !== id))
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inquiries'] })
       if (selectedInquiry?.id === id) {
         setSelectedInquiry(null)
       }

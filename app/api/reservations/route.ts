@@ -15,6 +15,7 @@ export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { us
     const paymentStatus = searchParams.get('payment_status')
     const startDate = searchParams.get('start_date')
     const endDate = searchParams.get('end_date')
+    const search = searchParams.get('search')
     const page = parseInt(searchParams.get('page') || '1')
     const pageSize = parseInt(searchParams.get('page_size') || '20')
 
@@ -37,6 +38,12 @@ export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { us
 
     if (paymentStatus) {
       query = query.eq('payment_status', paymentStatus)
+    }
+
+    if (search) {
+      query = query.or(
+        `customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%,reservation_number.ilike.%${search}%`
+      )
     }
 
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
@@ -143,7 +150,8 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'reservation' }, async
       .select('id')
       .eq('vehicle_id', vehicle_id)
       .not('status', 'eq', 'cancelled')
-      .or(`and(start_date.lte.${end_date},end_date.gte.${start_date})`)
+      .lte('start_date', end_date)
+      .gte('end_date', start_date)
 
     if (existingReservations && existingReservations.length > 0) {
       return NextResponse.json(
