@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser, hasMinimumRole } from '@/lib/auth/rbac'
+import { createClient } from '@/lib/supabase/server'
 import AdminLayoutClient from './AdminLayoutClient'
 
 export default async function AdminLayout({
@@ -7,14 +7,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || !hasMinimumRole(user.role, 'staff')) {
-    redirect('/')
+  if (!user) {
+    redirect('/login')
   }
 
   return (
-    <AdminLayoutClient userEmail={user.email}>
+    <AdminLayoutClient userEmail={user.email || ''}>
       {children}
     </AdminLayoutClient>
   )
