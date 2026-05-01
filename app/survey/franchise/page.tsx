@@ -103,8 +103,31 @@ export default function FranchiseSurveyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
     setError('')
+
+    // 필수 필드 검증 (sr-only 라디오는 브라우저 유효성 검사가 작동하지 않을 수 있음)
+    if (!form.name || !form.phone) {
+      setError('이름과 연락처를 입력해주세요.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (!form.age_group) {
+      setError('연령대를 선택해주세요.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (!form.startup_reason) {
+      setError('창업 희망 이유를 입력해주세요.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (!form.estimated_budget) {
+      setError('예상 창업비용을 선택해주세요.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    setIsSubmitting(true)
 
     try {
       const vehiclePlan: Record<string, { model: string; count: number }> = {}
@@ -153,6 +176,7 @@ export default function FranchiseSurveyPage() {
     } catch (err) {
       console.error('Error submitting survey:', err)
       setError(err instanceof Error ? err.message : '설문 제출 중 오류가 발생했습니다.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setIsSubmitting(false)
     }
@@ -199,12 +223,12 @@ export default function FranchiseSurveyPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
-                <input type="text" id="name" name="name" required value={form.name} onChange={handleChange}
+                <input type="text" id="name" name="name" value={form.name} onChange={handleChange}
                   className="input-field" placeholder="홍길동" />
               </div>
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">연락처 *</label>
-                <input type="tel" id="phone" name="phone" required value={form.phone} onChange={handleChange}
+                <input type="tel" id="phone" name="phone" value={form.phone} onChange={handleChange}
                   className="input-field" placeholder="010-0000-0000" />
               </div>
               <div>
@@ -230,7 +254,7 @@ export default function FranchiseSurveyPage() {
                 <label key={age} className={`flex items-center justify-center p-3 border rounded-lg cursor-pointer transition-colors text-sm
                   ${form.age_group === age ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:border-primary/50'}`}>
                   <input type="radio" name="age_group" value={age} checked={form.age_group === age}
-                    onChange={handleChange} className="sr-only" required />
+                    onChange={handleChange} className="sr-only" />
                   {age}
                 </label>
               ))}
@@ -245,7 +269,7 @@ export default function FranchiseSurveyPage() {
           <fieldset className="p-8 border-b border-gray-100">
             <legend className="text-lg font-bold text-gray-900 mb-2">3. 차놀자 렌트카 창업을 희망하는 이유는 무엇입니까? *</legend>
             <p className="text-sm text-gray-500 mb-3">예시) 렉카나 공업사 운영하는 지인이 많다.</p>
-            <textarea name="startup_reason" required rows={3} value={form.startup_reason} onChange={handleChange}
+            <textarea name="startup_reason" rows={3} value={form.startup_reason} onChange={handleChange}
               className="input-field resize-none" placeholder="창업 희망 이유를 적어주세요" />
           </fieldset>
 
@@ -331,7 +355,7 @@ export default function FranchiseSurveyPage() {
                 <label key={opt} className={`flex items-center justify-center p-3 border rounded-lg cursor-pointer transition-colors text-sm
                   ${form.estimated_budget === opt ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:border-primary/50'}`}>
                   <input type="radio" name="estimated_budget" value={opt} checked={form.estimated_budget === opt}
-                    onChange={handleChange} className="sr-only" required />
+                    onChange={handleChange} className="sr-only" />
                   {opt}
                 </label>
               ))}
