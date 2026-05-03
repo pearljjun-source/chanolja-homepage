@@ -4,7 +4,6 @@ import { withAuth } from '@/lib/auth/with-auth'
 import { sendSMS } from '@/lib/solapi/sms'
 
 export const POST = withAuth({ auth: 'public' }, async (request: NextRequest) => {
-  const t0 = Date.now()
   try {
     const body = await request.json()
 
@@ -79,9 +78,6 @@ export const POST = withAuth({ auth: 'public' }, async (request: NextRequest) =>
       )
     }
 
-    const t1 = Date.now()
-    console.log(`[survey-timing] validation: ${t1 - t0}ms`)
-
     const supabase = await createClient()
     const { error: insertError } = await supabase
       .from('franchise_surveys')
@@ -110,9 +106,6 @@ export const POST = withAuth({ auth: 'public' }, async (request: NextRequest) =>
         privacy_agreed,
       })
 
-    const t2 = Date.now()
-    console.log(`[survey-timing] supabase insert: ${t2 - t1}ms`)
-
     if (insertError) {
       console.error('설문 저장 실패:', insertError)
       return NextResponse.json(
@@ -121,30 +114,37 @@ export const POST = withAuth({ auth: 'public' }, async (request: NextRequest) =>
       )
     }
 
-    // SMS 알림 (실패해도 설문 접수는 성공)
+    // SMS 알림 — 같은 전화번호로 10분 내 3회 초과 시 SMS 생략 (비용 보호)
     try {
       const adminPhone = process.env.ADMIN_PHONE_NUMBER?.trim()
       if (adminPhone) {
-        const msg = [
-          '[차놀자] 새 프랜차이즈 설문',
-          `이름: ${name}`,
-          `연락처: ${phone}`,
-          `지역: ${region || '미입력'}`,
-          `연령대: ${age_group}`,
-          `예상투자: ${estimated_budget}`,
-        ].join('\n')
+        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+        const { count } = await supabase
+          .from('franchise_surveys')
+          .select('*', { count: 'exact', head: true })
+          .eq('phone', phone)
+          .gte('created_at', tenMinAgo)
 
-        await sendSMS({
-          receiver: adminPhone,
-          message: msg,
-          subject: '[차놀자] 새 프랜차이즈 설문',
-        })
+        if ((count ?? 0) <= 3) {
+          const msg = [
+            '[차놀자] 새 프랜차이즈 설문',
+            `이름: ${name}`,
+            `연락처: ${phone}`,
+            `지역: ${region || '미입력'}`,
+            `연령대: ${age_group}`,
+            `예상투자: ${estimated_budget}`,
+          ].join('\n')
+
+          await sendSMS({
+            receiver: adminPhone,
+            message: msg,
+            subject: '[차놀자] 새 프랜차이즈 설문',
+          })
+        }
       }
     } catch (err) {
       console.error('SMS 알림 전송 실패:', err)
     }
-    const t3 = Date.now()
-    console.log(`[survey-timing] sms: ${t3 - t2}ms | total: ${t3 - t0}ms`)
 
     return NextResponse.json({
       success: true,
