@@ -114,27 +114,23 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (req
       )
     }
 
-    // SMS 알림 (실패해도 설문 접수는 성공)
-    try {
-      const adminPhone = process.env.ADMIN_PHONE_NUMBER?.trim()
-      if (adminPhone) {
-        const msg = [
-          '[차놀자] 새 프랜차이즈 설문',
-          `이름: ${name}`,
-          `연락처: ${phone}`,
-          `지역: ${region || '미입력'}`,
-          `연령대: ${age_group}`,
-          `예상투자: ${estimated_budget}`,
-        ].join('\n')
+    // SMS 알림 (await 없이 비동기로 전송 — 응답 지연 방지)
+    const adminPhone = process.env.ADMIN_PHONE_NUMBER?.trim()
+    if (adminPhone) {
+      const msg = [
+        '[차놀자] 새 프랜차이즈 설문',
+        `이름: ${name}`,
+        `연락처: ${phone}`,
+        `지역: ${region || '미입력'}`,
+        `연령대: ${age_group}`,
+        `예상투자: ${estimated_budget}`,
+      ].join('\n')
 
-        await sendSMS({
-          receiver: adminPhone,
-          message: msg,
-          subject: '[차놀자] 새 프랜차이즈 설문',
-        })
-      }
-    } catch (err) {
-      console.error('SMS 알림 전송 실패:', err)
+      sendSMS({
+        receiver: adminPhone,
+        message: msg,
+        subject: '[차놀자] 새 프랜차이즈 설문',
+      }).catch(err => console.error('SMS 알림 전송 실패:', err))
     }
 
     return NextResponse.json({
