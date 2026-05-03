@@ -89,16 +89,15 @@ export async function checkRateLimit(
   const intervalSeconds = Math.ceil(config.interval / 1000)
 
   try {
-    // INCR + TTL 설정을 한 번에 처리 (원자적 연산)
+    // INCR로 카운트 증가
     const count = await redis.incr(key)
 
-    // 첫 요청일 경우 TTL 설정
-    if (count === 1) {
+    // TTL 조회 — TTL이 없으면(-1) 설정 (첫 요청이거나 TTL 누락 복구)
+    const ttl = await redis.ttl(key)
+    if (ttl === -1) {
       await redis.expire(key, intervalSeconds)
     }
 
-    // TTL 조회하여 resetTime 계산
-    const ttl = await redis.ttl(key)
     const resetTime = Date.now() + (ttl > 0 ? ttl * 1000 : config.interval)
 
     const remaining = Math.max(0, config.maxRequests - count)
@@ -117,8 +116,8 @@ export async function checkRateLimit(
       extra: { configKey, identifier },
     })
 
-    // 민감한 API(결제, 인증, 예약, 문의)는 fail-closed (차단)
-    const sensitiveKeys = ['auth', 'payment', 'reservation', 'inquiry', 'survey']
+    // 민감한 API(결제, 인증)는 fail-closed (차단)
+    const sensitiveKeys = ['auth', 'payment']
     if (sensitiveKeys.includes(configKey)) {
       console.error('Rate limit check failed (BLOCKED - sensitive API):', error)
       return {
