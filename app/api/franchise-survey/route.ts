@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/auth/with-auth'
 import { sendSMS } from '@/lib/solapi/sms'
 
 export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (request: NextRequest) => {
+  const t0 = Date.now()
   try {
     const body = await request.json()
 
@@ -78,6 +79,9 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (req
       )
     }
 
+    const t1 = Date.now()
+    console.log(`[survey-timing] validation: ${t1 - t0}ms`)
+
     const supabase = await createClient()
     const { error: insertError } = await supabase
       .from('franchise_surveys')
@@ -105,6 +109,9 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (req
         preferred_contact: preferred_contact || '전화',
         privacy_agreed,
       })
+
+    const t2 = Date.now()
+    console.log(`[survey-timing] supabase insert: ${t2 - t1}ms`)
 
     if (insertError) {
       console.error('설문 저장 실패:', insertError)
@@ -136,6 +143,8 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (req
     } catch (err) {
       console.error('SMS 알림 전송 실패:', err)
     }
+    const t3 = Date.now()
+    console.log(`[survey-timing] sms: ${t3 - t2}ms | total: ${t3 - t0}ms`)
 
     return NextResponse.json({
       success: true,
