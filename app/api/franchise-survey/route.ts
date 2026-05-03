@@ -29,7 +29,7 @@ export const POST = withAuth({ auth: 'public', rateLimit: 'survey' }, async (req
     if (
       typeof name !== 'string' || name.length > 50 ||
       typeof phone !== 'string' || phone.length > 20 ||
-      typeof age_group !== 'string' || age_group.length > 10 ||
+      typeof age_group !== 'string' || age_group.length > 50 ||
       typeof startup_reason !== 'string' || startup_reason.length > 2000 ||
       typeof estimated_budget !== 'string' || estimated_budget.length > 30 ||
       (email && (typeof email !== 'string' || email.length > 100)) ||
