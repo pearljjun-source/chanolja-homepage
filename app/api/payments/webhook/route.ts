@@ -212,7 +212,7 @@ async function handlePaymentCanceled(
 
   if (!payment) return
 
-  await supabase
+  const { error: paymentUpdateError } = await supabase
     .from('payments')
     .update({
       status: 'cancelled',
@@ -220,14 +220,22 @@ async function handlePaymentCanceled(
     })
     .eq('id', payment.id)
 
+  if (paymentUpdateError) {
+    console.error('Failed to update payment status (canceled):', orderId, paymentUpdateError.message)
+  }
+
   if (payment.reservation_id) {
-    await supabase
+    const { error: resUpdateError } = await supabase
       .from('reservations')
       .update({
         status: 'cancelled',
         payment_status: 'refunded'
       })
       .eq('id', payment.reservation_id)
+
+    if (resUpdateError) {
+      console.error('Failed to update reservation status (canceled):', orderId, resUpdateError.message)
+    }
   }
 
   console.log('Payment canceled:', orderId)
@@ -250,7 +258,7 @@ async function handlePaymentExpired(
 
   if (!payment) return
 
-  await supabase
+  const { error: paymentUpdateError } = await supabase
     .from('payments')
     .update({
       status: 'failed',
@@ -258,14 +266,22 @@ async function handlePaymentExpired(
     })
     .eq('id', payment.id)
 
+  if (paymentUpdateError) {
+    console.error('Failed to update payment status (expired):', orderId, paymentUpdateError.message)
+  }
+
   if (payment.reservation_id) {
-    await supabase
+    const { error: resUpdateError } = await supabase
       .from('reservations')
       .update({
         status: 'cancelled',
         payment_status: 'expired'
       })
       .eq('id', payment.reservation_id)
+
+    if (resUpdateError) {
+      console.error('Failed to update reservation status (expired):', orderId, resUpdateError.message)
+    }
   }
 
   console.log('Payment expired:', orderId)

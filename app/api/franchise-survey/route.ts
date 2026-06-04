@@ -125,7 +125,7 @@ export const POST = withAuth({ auth: 'public' }, async (request: NextRequest) =>
           .eq('phone', phone)
           .gte('created_at', tenMinAgo)
 
-        if ((count ?? 0) <= 3) {
+        if ((count ?? 0) < 3) {
           const msg = [
             '[차놀자] 새 프랜차이즈 설문',
             `이름: ${name}`,

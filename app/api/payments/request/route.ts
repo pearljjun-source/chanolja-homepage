@@ -113,7 +113,7 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
     }
 
     // 주문 정보 생성
-    const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const orderId = `ORDER_${Date.now()}_${crypto.randomUUID().replace(/-/g, '').slice(0, 9)}`
     const vehicleName = reservation.vehicle?.brand
       ? `${reservation.vehicle.brand} ${reservation.vehicle.model || reservation.vehicle.name}`
       : reservation.vehicle?.name || '차량 렌트'
