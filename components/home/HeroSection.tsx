@@ -3,6 +3,13 @@
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { ArrowRight } from 'lucide-react'
+import { Nunito } from 'next/font/google'
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['700'],
+  display: 'swap',
+})
 
 // 3D Scene을 동적으로 불러와서 초기 로딩 시간 최적화
 const Hero3DScene = dynamic(() => import('./Hero3DScene'), {
@@ -30,6 +37,7 @@ export default function HeroSection() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 lg:mb-6">
+              <span className="block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white/80 tracking-widest mb-2 lg:mb-3">차놀자 <span className={`${nunito.className} lowercase`}>chanolja</span></span>
               <span className="text-primary">GROW</span>
               <br />
               <span className="text-white">TOGETHER</span>
