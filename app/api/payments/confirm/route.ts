@@ -119,7 +119,7 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
         p_order_id: orderId,
         p_payment_key: paymentKey,
         p_card_company: tossData.card?.company || null,
-        p_card_number: tossData.card?.number || null,
+        p_card_number: null,
         p_installment_months: tossData.card?.installmentPlanMonths || 0,
       })
 
@@ -134,7 +134,7 @@ export const POST = withAuth({ auth: 'authenticated' }, async (request: NextRequ
           status: 'completed',
           paid_at: new Date().toISOString(),
           card_company: tossData.card?.company || null,
-          card_number: tossData.card?.number || null,
+          card_number: null,
           installment_months: tossData.card?.installmentPlanMonths || 0,
           settlement_status: 'processing',
           branch_settlement_status: 'processing',

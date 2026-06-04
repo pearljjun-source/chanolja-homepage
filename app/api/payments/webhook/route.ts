@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Received webhook:', eventType, data)
+    console.log('Received webhook:', eventType, data?.orderId)
 
     switch (eventType) {
       // 가상계좌 입금 완료
@@ -192,10 +192,7 @@ async function handlePaymentCompleted(
       .eq('id', payment.reservation_id)
   }
 
-  console.log('Payment completed:', orderId, {
-    branchAmount: payment.branch_settlement_amount,
-    hqAmount: payment.hq_settlement_amount
-  })
+  console.log('Payment completed:', orderId)
 }
 
 // 결제 취소 처리
@@ -329,7 +326,7 @@ async function handleSettlementCompleted(
       .eq('id', payment.id)
   }
 
-  console.log('Settlement completed:', orderId, subMallId, settlementAmount)
+  console.log('Settlement completed:', orderId)
 }
 
 // 정산 실패 처리
@@ -374,5 +371,5 @@ async function handleSettlementFailed(
     .update(updateData)
     .eq('id', payment.id)
 
-  console.error('Settlement failed:', orderId, subMallId, failReason)
+  console.error('Settlement failed:', orderId)
 }
