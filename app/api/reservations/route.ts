@@ -5,7 +5,7 @@ import { calculateReservationPrice } from '@/lib/pricing/calculate-price'
 import { reservationCreateServerSchema } from '@/lib/validations/reservation'
 
 // GET: 예약 목록 조회
-export const GET = withAuth({ auth: 'admin' }, async (request: NextRequest, { user, params }) => {
+export const GET = withAuth({ auth: 'admin', rateLimit: 'read' }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)

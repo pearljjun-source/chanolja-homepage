@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/auth/with-auth'
 
 // GET: 보험 목록 조회
-export const GET = withAuth({ auth: 'branch_admin' }, async (request: NextRequest, { user, params }) => {
+export const GET = withAuth({ auth: 'branch_admin', rateLimit: 'read' }, async (request: NextRequest, { user, params }) => {
   try {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
