@@ -17,7 +17,6 @@ export function OrganizationJsonLd() {
       '@type': 'Country',
       name: 'South Korea',
     },
-    sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',

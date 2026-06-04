@@ -10,6 +10,12 @@ export const revalidate = 3600 // 1시간마다 ISR 재생성
 export const metadata: Metadata = {
   title: '지점현황',
   description: '차놀자 전국 120개 지점을 확인하세요. 서울, 경기, 인천, 충청, 전라, 경상, 강원, 부산, 제주까지 전국 어디서나 차놀자를 만날 수 있습니다.',
+  keywords: ['차놀자 지점', '전국 렌트카', '렌트카 지점 찾기', '가까운 렌트카', '서울 렌트카', '제주 렌트카', '부산 렌트카', '경기 렌트카'],
+  openGraph: {
+    title: '지점현황 | 차놀자 CHANOLJA',
+    description: '전국 120개 지점을 확인하세요. 서울부터 제주까지 어디서나 차놀자.',
+    url: '/branches',
+  },
   alternates: {
     canonical: '/branches',
   },

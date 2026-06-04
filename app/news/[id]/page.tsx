@@ -13,6 +13,18 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+async function getNewsMetadata(id: string) {
+  const { data, error } = await supabase
+    .from('news')
+    .select('id, title, content, thumbnail_url')
+    .eq('id', id)
+    .eq('is_published', true)
+    .single()
+
+  if (error) return null
+  return data
+}
+
 async function getNews(id: string) {
   const { data, error } = await supabase
     .from('news')
@@ -40,7 +52,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const news = await getNews(id)
+  const news = await getNewsMetadata(id)
 
   if (!news) {
     return {
@@ -59,6 +71,9 @@ export async function generateMetadata({
       ...(news.thumbnail_url && {
         images: [{ url: news.thumbnail_url, alt: news.title }],
       }),
+    },
+    alternates: {
+      canonical: `/news/${id}`,
     },
   }
 }
