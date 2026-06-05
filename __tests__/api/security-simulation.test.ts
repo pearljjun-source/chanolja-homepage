@@ -124,6 +124,15 @@ describe('S-P2-004 & S-P3-006: create-user password policy & role validation', (
         user: { id: 'sa-1', email: 'sa@test.com', role: 'super_admin' },
       }),
     }))
+
+    jest.doMock('@/lib/rate-limit', () => ({
+      checkRateLimit: jest.fn().mockResolvedValue({
+        success: true, limit: 100, remaining: 99, resetTime: Date.now() + 60000,
+      }),
+      getClientIP: jest.fn().mockReturnValue('127.0.0.1'),
+      getRateLimitHeaders: jest.fn().mockReturnValue({}),
+      createRateLimitResponse: jest.fn(),
+    }))
   })
 
   it('should reject password with 7 characters', async () => {

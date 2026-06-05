@@ -30,6 +30,19 @@ describe('Reservations API', () => {
       }),
     }))
 
+    // Rate limit mock: 항상 통과
+    jest.doMock('@/lib/rate-limit', () => ({
+      checkRateLimit: jest.fn().mockResolvedValue({
+        success: true,
+        limit: 100,
+        remaining: 99,
+        resetTime: Date.now() + 60000,
+      }),
+      getClientIP: jest.fn().mockReturnValue('127.0.0.1'),
+      getRateLimitHeaders: jest.fn().mockReturnValue({}),
+      createRateLimitResponse: jest.fn(),
+    }))
+
     // 가격 계산 mock
     jest.doMock('@/lib/pricing/calculate-price', () => ({
       calculateReservationPrice: jest.fn().mockResolvedValue({
@@ -127,7 +140,8 @@ describe('Reservations API', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
-        or: jest.fn().mockResolvedValue({
+        lte: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockResolvedValue({
           data: [{ id: 'existing-res' }],
           error: null,
         }),
@@ -163,7 +177,8 @@ describe('Reservations API', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
-        or: jest.fn().mockResolvedValue({
+        lte: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockResolvedValue({
           data: [],
           error: null,
         }),
@@ -213,7 +228,8 @@ describe('Reservations API', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
-        or: jest.fn().mockResolvedValue({
+        lte: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockResolvedValue({
           data: [],
           error: null,
         }),
