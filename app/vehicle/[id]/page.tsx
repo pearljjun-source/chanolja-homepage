@@ -21,24 +21,8 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { BRANCH_DEFAULTS } from '@/lib/constants/company'
+import { VEHICLE_TYPE_LABELS, FUEL_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Branch, Vehicle } from '@/types/database'
-
-const fuelTypeLabels: Record<string, string> = {
-  gasoline: '가솔린',
-  diesel: '디젤',
-  lpg: 'LPG',
-  electric: '전기',
-  hybrid: '하이브리드'
-}
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
-}
 
 export default function VehicleDetailPage() {
   const params = useParams()
@@ -265,7 +249,7 @@ export default function VehicleDetailPage() {
                 )}
                 <div className="absolute top-4 left-4">
                   <span className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-full">
-                    {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+                    {VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}
                   </span>
                 </div>
               </div>
@@ -312,7 +296,7 @@ export default function VehicleDetailPage() {
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
                   <Fuel className="w-6 h-6 text-primary mx-auto mb-2" />
                   <p className="text-sm text-gray-500">연료</p>
-                  <p className="font-bold text-dark">{vehicle.fuel_type ? fuelTypeLabels[vehicle.fuel_type] : '-'}</p>
+                  <p className="font-bold text-dark">{vehicle.fuel_type ? FUEL_TYPE_LABELS[vehicle.fuel_type] : '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
                   <Settings2 className="w-6 h-6 text-primary mx-auto mb-2" />

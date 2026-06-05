@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase/client'
 import { findBranch } from '@/lib/supabase/branch-lookup'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
+import { VEHICLE_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleInsurance {
@@ -33,15 +34,6 @@ interface VehicleInsurance {
 
 interface VehicleWithInsurance extends Omit<Vehicle, 'insurance'> {
   insurance?: VehicleInsurance[]
-}
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -291,7 +283,7 @@ export default function BranchVehiclesPage() {
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       <span className="text-gray-700">
-                        {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+                        {VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}
                       </span>
                     </td>
                     <td className="px-4 py-3">

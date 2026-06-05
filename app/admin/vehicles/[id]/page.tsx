@@ -8,30 +8,14 @@ import { ArrowLeft, Save, Car, Edit, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmModal'
+import { VEHICLE_TYPE_LABELS, FUEL_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Vehicle, Branch } from '@/types/database'
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
-}
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   available: { label: '대여가능', color: 'bg-green-100 text-green-800' },
   rented: { label: '대여중', color: 'bg-blue-100 text-blue-800' },
   maintenance: { label: '정비중', color: 'bg-yellow-100 text-yellow-800' },
   reserved: { label: '예약됨', color: 'bg-purple-100 text-purple-800' }
-}
-
-const fuelTypeLabels: Record<string, string> = {
-  gasoline: '가솔린',
-  diesel: '디젤',
-  lpg: 'LPG',
-  electric: '전기',
-  hybrid: '하이브리드'
 }
 
 const transmissionLabels: Record<string, string> = {
@@ -166,7 +150,7 @@ export default function VehicleDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">차량 유형</p>
-                <p className="font-medium text-dark">{vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}</p>
+                <p className="font-medium text-dark">{VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">색상</p>
@@ -178,7 +162,7 @@ export default function VehicleDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">연료</p>
-                <p className="font-medium text-dark">{vehicle.fuel_type ? fuelTypeLabels[vehicle.fuel_type] : '-'}</p>
+                <p className="font-medium text-dark">{vehicle.fuel_type ? FUEL_TYPE_LABELS[vehicle.fuel_type] : '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">변속기</p>

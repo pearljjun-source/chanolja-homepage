@@ -18,16 +18,8 @@ import { useConfirm } from '@/components/ui/ConfirmModal'
 import { useActiveBranches, useVehicles } from '@/lib/hooks/use-admin-queries'
 import { useQueryClient } from '@tanstack/react-query'
 import { revalidateBranches } from '@/app/actions/revalidate'
+import { VEHICLE_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Branch } from '@/types/database'
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
-}
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   available: { label: '대여가능', color: 'bg-green-100 text-green-800' },
@@ -215,7 +207,7 @@ export default function AdminVehiclesPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-gray-700">
-                          {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+                          {VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}
                         </span>
                       </td>
                       <td className="px-6 py-4">

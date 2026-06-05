@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { findBranch } from '@/lib/supabase/branch-lookup'
+import { VEHICLE_TYPE_LABELS, FUEL_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Branch, Vehicle } from '@/types/database'
 
 interface VehicleWithInsurance extends Omit<Vehicle, 'insurance'> {
@@ -23,23 +24,6 @@ interface VehicleWithInsurance extends Omit<Vehicle, 'insurance'> {
     is_active: boolean
     end_date: string
   }[]
-}
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
-}
-
-const fuelTypeLabels: Record<string, string> = {
-  gasoline: '가솔린',
-  diesel: '디젤',
-  lpg: 'LPG',
-  electric: '전기',
-  hybrid: '하이브리드'
 }
 
 // 보험 가입 여부 확인
@@ -133,7 +117,7 @@ export default function BranchVehiclesPage() {
                     : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {type === 'all' ? '전체' : vehicleTypeLabels[type] || type}
+                {type === 'all' ? '전체' : VEHICLE_TYPE_LABELS[type] || type}
               </button>
             ))}
           </div>
@@ -178,7 +162,7 @@ export default function BranchVehiclesPage() {
                     )}
                     <div className="absolute top-3 left-3 flex gap-2">
                       <span className="px-2 py-1 bg-primary text-white text-xs font-medium rounded">
-                        {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+                        {VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}
                       </span>
                       {hasActiveInsurance(vehicle.insurance) && (
                         <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded flex items-center gap-1">
@@ -215,7 +199,7 @@ export default function BranchVehiclesPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Fuel className="w-4 h-4" />
-                        <span>{vehicle.fuel_type ? fuelTypeLabels[vehicle.fuel_type] : '-'}</span>
+                        <span>{vehicle.fuel_type ? FUEL_TYPE_LABELS[vehicle.fuel_type] : '-'}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Settings2 className="w-4 h-4" />

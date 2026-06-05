@@ -22,24 +22,8 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { BRANCHES_PUBLIC_COLUMNS } from '@/lib/supabase/constants'
 import { useToast } from '@/components/ui/Toast'
+import { VEHICLE_TYPE_LABELS, FUEL_TYPE_LABELS } from '@/lib/constants/vehicle'
 import type { Branch, Vehicle } from '@/types/database'
-
-const vehicleTypeLabels: Record<string, string> = {
-  sedan: '세단',
-  suv: 'SUV',
-  van: '승합',
-  truck: '트럭',
-  camper: '캠핑카',
-  luxury: '고급'
-}
-
-const fuelTypeLabels: Record<string, string> = {
-  gasoline: '가솔린',
-  diesel: '디젤',
-  lpg: 'LPG',
-  electric: '전기',
-  hybrid: '하이브리드'
-}
 
 const vehicleTypeOptions = [
   { value: 'all', label: '전체' },
@@ -391,7 +375,7 @@ export default function ReservationSection() {
                         )}
                         <div className="absolute top-2 left-2 lg:top-3 lg:left-3">
                           <span className="px-1.5 lg:px-2.5 py-0.5 lg:py-1 bg-primary text-white text-[10px] lg:text-xs font-semibold rounded-md lg:rounded-lg">
-                            {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+                            {VEHICLE_TYPE_LABELS[vehicle.vehicle_type] || vehicle.vehicle_type}
                           </span>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -409,7 +393,7 @@ export default function ReservationSection() {
                           </span>
                           <span className="flex items-center gap-1 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-slate-100 rounded-md lg:rounded-lg">
                             <Fuel className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-                            {fuelTypeLabels[vehicle.fuel_type || ''] || '-'}
+                            {FUEL_TYPE_LABELS[vehicle.fuel_type || ''] || '-'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
